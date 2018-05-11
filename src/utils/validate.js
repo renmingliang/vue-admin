@@ -1,3 +1,8 @@
+// 允许用户名
+export function isvalidUsername(str) {
+  const valid_map = ['admin', 'test']
+  return valid_map.indexOf(str.trim()) >= 0
+}
 
 // 合法uri
 export function validateURL(textval) {

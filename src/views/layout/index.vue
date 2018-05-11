@@ -1,10 +1,10 @@
 <template>
-  <el-container>
+  <el-container class="app-wrapper" :class="classObj">
     <side-bar></side-bar>
     <el-container class="app-container">
       <head-bar></head-bar>
       <el-main class="app-main">
-        <breadcrumb></breadcrumb>
+        <nav-bar></nav-bar>
         <app-main></app-main>
       </el-main>
     </el-container>
@@ -12,27 +12,42 @@
 </template>
 
 <script>
-import { AppMain, HeadBar, Breadcrumb, SideBar } from './components'
+import { AppMain, HeadBar, NavBar, SideBar } from './components'
 export default {
   data() {
-    return {
-    }
+    return {}
   },
   components: {
     AppMain,
     HeadBar,
     SideBar,
-    Breadcrumb
+    NavBar
+  },
+  computed: {
+    sidebar() {
+      return this.$store.state.app.sidebar
+    },
+    classObj() {
+      return {
+        hideSidebar: !this.sidebar.opened
+      }
+    }
   }
 }
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
-.app-container{
-  margin-left: 200px;
-  margin-top: 60px;
-  .app-main{
-    padding: 0;
+.app-wrapper{
+  width: 100%;
+  height: 100%;
+  position: relative;
+  .app-container{
+    margin-left: 200px;
+    margin-top: 60px;
+    .app-main{
+      padding: 0;
+      background: #f2f2f2;
+    }
   }
 }
 </style>

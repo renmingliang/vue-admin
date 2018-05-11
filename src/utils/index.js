@@ -11,9 +11,7 @@ export function getQueryString (str, name) {
 /**
  * 表单数据转JSON对象
  */
-export function param2Obj (str) {
-  if (!str) {
-    return {}
-  }
+export function param2Obj(str) {
+  if (!str) { return {} }
   return JSON.parse('{"' + decodeURIComponent(str).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}')
 }

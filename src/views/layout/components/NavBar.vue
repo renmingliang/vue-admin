@@ -1,27 +1,48 @@
 <template>
-  <div class="navbar-container">
-    我是顶部栏
-  </div>
+  <el-menu class="nav-bar" mode="horizontal">
+    <hamburger class="hamburger-container" :toggleClick="toggleSideBar" :isActive="sidebar.opened"></hamburger>
+    <breadcrumb></breadcrumb>
+  </el-menu>
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+import Breadcrumb from '@/components/Breadcrumb'
+import Hamburger from '@/components/Hamburger'
 
 export default {
-  name: 'NarBar',
+  name: 'navBar',
+  data() {
+    return {}
+  },
   components: {
+    Breadcrumb,
+    Hamburger
   },
   computed: {
+    ...mapGetters([
+      'sidebar',
+      'avatar'
+    ])
   },
   methods: {
+    toggleSideBar() {
+      this.$store.dispatch('ToggleSideBar')
+    }
   }
 }
 </script>
 
-<style rel="stylesheet/scss" lang="scss" scoped>
-.navbar-container{
-  width: 100%;
+<style lang="scss" scoped>
+.nav-bar{
   height: 50px;
-  line-height: 50px;
-  background: yellow;
+  overflow: hidden;
+  border-bottom: 1px solid #d8dce5;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,.12), 0 0 3px 0 rgba(0,0,0,.04);
+  .hamburger-container{
+    float: left;
+    line-height: 60px;
+    padding: 0 10px;
+  }
 }
 </style>

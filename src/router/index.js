@@ -22,33 +22,85 @@ Vue.use(Router)
   }
 **/
 export const constantRouterMap = [
+  { path: '/login', name: 'login', component: _import('login'), hidden: true },
   {
     path: '/',
     component: Layout,
     redirect: '/dashboard',
-    name: 'Dashboard',
+    name: 'dashboard',
     hidden: true,
     children: [{
       path: 'dashboard',
       component: _import('dashboard')
     }]
-  },
-  {
-    path: '/form',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Form',
-        component: _import('form'),
-        meta: { title: 'Form', icon: 'form' }
-      }
-    ]
   }
 ]
 
 export default new Router({
-  // mode: 'history', //后端支持可开
+  // mode: 'history', // 后端支持可开
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRouterMap
 })
+
+export const asyncRouterMap = [
+  {
+    path: '/manage',
+    name: 'manage',
+    component: Layout,
+    redirect: 'noredirect',
+    alwaysShow: true,
+    meta: { title: 'IP管理', icon: 'table' },
+    children: [
+      {
+        path: 'search',
+        name: 'search',
+        component: _import('manage/search'),
+        meta: { title: '信息查询', code: 'search' }
+      },
+      {
+        path: 'ip',
+        name: 'ip',
+        component: _import('manage/ip'),
+        meta: { title: 'IP信息录入', code: 'ip' }
+      },
+      {
+        path: 'project',
+        name: 'project',
+        component: _import('manage/project'),
+        meta: { title: '项目信息录入', code: 'project' }
+      }
+    ]
+  },
+  {
+    path: '/setting',
+    name: 'setting',
+    component: Layout,
+    redirect: 'noredirect',
+    alwaysShow: true,
+    meta: { title: '系统设置', icon: 'example' },
+    children: [
+      {
+        path: 'adaptation',
+        name: 'adaptation',
+        component: _import('setting/adaptation'),
+        meta: { title: '改编权设置', code: 'adaptation' }
+      },
+      {
+        path: 'permission',
+        name: 'permission',
+        component: _import('setting/permission'),
+        meta: { title: '权限设置', code: 'permission' }
+      }
+    ]
+  },
+  {
+    path: '/log',
+    component: Layout,
+    children: [{
+      path: 'index',
+      name: 'log',
+      component: _import('log'),
+      meta: { title: '操作日志', icon: 'tree', code: 'log' }
+    }]
+  }
+]

@@ -4,10 +4,7 @@
 
 const path = require('path')
 
-// const target = 'http://115.159.189.146:8060'  //沙箱环境
-// const target = 'http://10.10.40.33:8434'  //内网环境
-
-
+const target = 'http://10.10.40.33:8314'  //内网环境
 
 module.exports = {
   dev: {
@@ -17,14 +14,14 @@ module.exports = {
     assetsPublicPath: '/',
 
     // 设置代理
-    proxyTable: {/*
+    proxyTable: {
       '/dev': {
         target,
         changeOrigin: true,
         pathRewrite: {
           '^/dev': ''
         }
-      } */
+      }
     },
 
     // Various Dev Server settings
@@ -60,11 +57,11 @@ module.exports = {
 
   build: {
     // Template for index.html
-    index: path.resolve(__dirname, '../dist/index.html'),
+    index: path.resolve(__dirname, '../../../views/site/login.php'),
 
     // Paths
-    assetsRoot: path.resolve(__dirname, '../dist'),
-    assetsSubDirectory: 'static',
+    assetsRoot: path.resolve(__dirname, '../../'),
+    assetsSubDirectory: 'static/dist',
     assetsPublicPath: '/',
 
     /**

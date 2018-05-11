@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section class="main-container">
     <transition name="fade" mode="out-in">
       <keep-alive>
         <router-view></router-view>
@@ -13,3 +13,9 @@ export default {
   name: 'AppMain'
 }
 </script>
+
+<style lang="scss" scoped>
+.main-container{
+  padding: 20px;
+}
+</style>

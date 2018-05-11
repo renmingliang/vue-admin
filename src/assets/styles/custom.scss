@@ -1,0 +1,91 @@
+//全局样式
+html, #app{
+  height: 100%;
+}
+.inline{
+  display: inline-block;
+}
+.float-left{
+  float: left;
+}
+.float-right{
+  float: right;
+}
+.clearfix {
+  &:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+  }
+}
+
+.common-wrap{
+  padding: 20px;
+  &+&{
+    margin-top: 30px;
+  }
+}
+
+.search-container{
+  .el-form-item__content{
+    max-width: 330px;
+  }
+    .search-filter{
+    background: #fff;
+    .line{
+      text-align: center;
+    }
+  }
+  .search-result{
+    background: #fff;
+    .cell>div+div{
+      margin-top: 10px;
+    }
+    .column-container{
+      .column-item+.column-item{
+        position: relative;
+        margin-top: 10px;
+        padding-top: 10px;
+        &:before{
+          position: absolute;
+          right: -10px;
+          top: 0;
+          left: -10px;
+          height: 1px;
+          content: '';
+          background-color: #ebeef5;
+        }
+      }
+    }
+    .hover-show{
+      .inline{
+        display: none;
+      }
+      &:hover{
+        .inline{
+          display: block;
+        }
+      }
+    }
+  }
+  .search-pagination{
+    margin-top: 30px;
+  }
+}
+
+.box-container{
+  .common-wrap{
+    padding: 20px 50px 0 20px;
+  }
+  .custom-btn{
+    margin: 50px 0 20px;
+    .btn-add{
+      width: 80%;
+      color: #fff;
+      background: #685762;
+    }
+  }
+}

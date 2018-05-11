@@ -1,12 +1,7 @@
 <template>
-  <el-table :data="tableData">
-    <el-table-column prop="date" label="日期" width="140">
-    </el-table-column>
-    <el-table-column prop="name" label="姓名" width="120">
-    </el-table-column>
-    <el-table-column prop="address" label="地址">
-    </el-table-column>
-  </el-table>
+  <div>
+    欢迎使用IP资料库
+  </div>
 </template>
 
 <script>
@@ -14,14 +9,7 @@
 export default {
   name: 'dashboard',
   data() {
-    const item = {
-      date: '2016-05-02',
-      name: '王小虎',
-      address: '上海市普陀区金沙江路 1518 弄'
-    }
-    return {
-      tableData: Array(20).fill(item)
-    }
+    return {}
   },
   computed: {
   }
@@ -29,4 +17,5 @@ export default {
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
+
 </style>

@@ -1,6 +1,7 @@
 import axios from 'axios'
-import { Message, MessageBox } from 'element-ui'
+import qs from 'qs'
 import store from '../store'
+import { Message } from 'element-ui'
 import { getToken } from '@/utils/auth'
 
 // 创建axios实例
@@ -13,19 +14,14 @@ const service = axios.create({
   // 后面数组中的函数必须返回一个字符串，或 ArrayBuffer，或 Stream
   transformRequest: [function (data) {
     // 对 data 进行任意转换处理
-    let ret = []
-    for (let name in data) {
-      ret.push(encodeURIComponent(name) + '=' + encodeURIComponent(data[name]))
-    }
-    return ret.join('&')
-  }],
-  params: {}
+    return qs.stringify(data)
+  }]
 })
 
 // request拦截器
 service.interceptors.request.use(config => {
   if (store.getters.token) {
-    config.params['access-token'] = getToken() // 让每个请求携带自定义token 请根据实际情况自行修改
+    config.headers['access-token'] = getToken()
   }
   return config
 }, error => {
@@ -46,7 +42,7 @@ service.interceptors.response.use(
       })
 
       // 10008:非法的token; 10012:其他客户端登录了;  10014:Token 过期了;
-      if (res.code === 10014) {
+      /* if (res.code === 10014) {
         MessageBox.confirm('你已被登出，可以取消继续留在该页面，或者重新登录', '确定登出', {
           confirmButtonText: '重新登录',
           cancelButtonText: '取消',
@@ -56,8 +52,8 @@ service.interceptors.response.use(
             location.reload()// 为了重新实例化vue-router对象 避免bug
           })
         })
-      }
-      return Promise.reject(new Error('error'))
+      } */
+      return Promise.reject(res)
     } else {
       return response.data
     }

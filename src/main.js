@@ -11,7 +11,7 @@ import '@/assets/styles/index.scss' // global css
 
 import '@/assets/icons' // icon
 
-import './mock' // mock request
+// import './mock' // mock request
 import './permission'// user-roles permission
 
 Vue.use(ElementUI)

@@ -30,11 +30,11 @@ const user = {
       const username = userInfo.username.trim()
       const password = userInfo.password
       return new Promise((resolve, reject) => {
-        api.login({username, password}).then(response => {
-          const token = response.data
+        api.login({username, password}).then(res => {
+          const token = res.data
           setToken(token)
           commit('SET_TOKEN', token)
-          resolve()
+          resolve(res)
         }).catch(error => {
           reject(error)
         })
@@ -53,8 +53,9 @@ const user = {
     // 获取用户信息
     GetInfo({ commit, state }) {
       return new Promise((resolve, reject) => {
-        api.getInfo().then(response => {
-          const data = response.data
+        api.getInfo().then(res => {
+          const data = {roles: res.data}
+          console.log(data)
           if (data.roles && data.roles.length > 0) { // 验证返回的roles是否是一个非空数组
             commit('SET_ROLES', data.roles)
           } else {
@@ -62,7 +63,7 @@ const user = {
           }
           commit('SET_NAME', data.name)
           commit('SET_AVATAR', data.avatar)
-          resolve(response)
+          resolve(res)
         }).catch(error => {
           reject(error)
         })

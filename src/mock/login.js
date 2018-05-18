@@ -12,7 +12,7 @@ const userMap = {
             code: 'search',
             type: 'menu',
             title: '信息查询',
-            children: [
+            permission: [
               {
                 code: 'edit-project',
                 type: 'button',
@@ -55,9 +55,16 @@ const userMap = {
         ]
       },
       {
-        code: 'log',
+        code: 'action',
         type: 'menu',
-        title: '操作日志'
+        title: '操作日志',
+        children: [
+          {
+            code: 'log',
+            type: 'menu',
+            title: '操作日志'
+          }
+        ]
       }
     ],
     token: 'admin',
@@ -66,8 +73,48 @@ const userMap = {
     name: 'Super Admin'
   },
   test: {
-    roles: ['test'],
-    token: 'admin',
+    roles: [
+      {
+        code: 'manage',
+        type: 'menu',
+        title: 'IP管理',
+        children: [
+          {
+            code: 'search',
+            type: 'menu',
+            title: '信息查询'
+          },
+          {
+            code: 'ip',
+            type: 'menu',
+            title: 'IP信息录入'
+          },
+          {
+            code: 'project',
+            type: 'menu',
+            title: '项目信息录入'
+          }
+        ]
+      },
+      {
+        code: 'setting',
+        type: 'menu',
+        title: '系统设置',
+        children: [
+          {
+            code: 'adaptation',
+            type: 'menu',
+            title: '改编权设置'
+          },
+          {
+            code: 'permission',
+            type: 'menu',
+            title: '权限设置'
+          }
+        ]
+      }
+    ],
+    token: 'test',
     introduction: '我是编辑',
     avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
     name: 'Normal test'
@@ -92,13 +139,12 @@ export default {
     }
   },
   getUserInfo: config => {
-    const search = config.url.split('?')[1]
-    const token = param2Obj(search)['access-token']
+    const token = 'admin'
     if (token) {
       return {
         code: 10000,
         msg: '拉取用户信息成功',
-        data: userMap[token]
+        data: userMap[token].roles
       }
     } else {
       return {

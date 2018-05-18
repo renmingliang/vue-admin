@@ -1,60 +1,143 @@
-import { asyncRouterMap, constantRouterMap } from '@/router'
-
-/**
- * 通过meta.roles判断是否与当前用户权限匹配
- * @param roles
- * @param route
- */
-function hasPermission(roles, route) {
-  if (route.meta && route.meta.roles) {
-    return roles.some(role => route.meta.roles.indexOf(role) >= 0)
-  } else {
-    return true
-  }
-}
-
-/**
- * 递归过滤异步路由表，返回符合用户角色权限的路由表
- * @param asyncRouterMap
- * @param roles
- */
-function filterAsyncRouter(asyncRouterMap, roles) {
-  const accessedRouters = asyncRouterMap.filter(route => {
-    if (hasPermission(roles, route)) {
-      if (route.children && route.children.length) {
-        route.children = filterAsyncRouter(route.children, roles)
-      }
-      return true
-    }
-    return false
-  })
-  return accessedRouters
-}
+import api from '@/api'
 
 const permission = {
   state: {
-    routers: constantRouterMap,
-    addRouters: []
+    configData: [],
+    permissionData: []
   },
-  mutations: {
-    SET_ROUTERS: (state, routers) => {
-      state.addRouters = routers
-      state.routers = constantRouterMap.concat(routers)
+
+  getters: {
+    configData: state => state.configData,
+    permissionData: state => state.permissionData,
+    permissionName: state => {
+      return state.permissionData.map(item => {
+        return {
+          label: item.name,
+          value: item.id
+        }
+      })
     }
   },
+
+  mutations: {
+    PERMISSION_LIST: (state, payload) => {
+      state.permissionData = payload.list
+    },
+    SET_CONFIG: (state, payload) => {
+      state.configData = payload.list
+    }
+  },
+
   actions: {
-    GenerateRoutes({ commit }, data) {
-      return new Promise(resolve => {
-        const { roles } = data
-        let accessedRouters
-        if (roles.indexOf('admin') >= 0) {
-          accessedRouters = asyncRouterMap
-        } else {
-          accessedRouters = filterAsyncRouter(asyncRouterMap, roles)
-        }
-        console.log(accessedRouters)
-        commit('SET_ROUTERS', accessedRouters)
-        resolve()
+    // 录入
+    PERMISSION_EDIT({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        api.PermissionEdit(params)
+          .then(res => {
+            console.log(res)
+            resolve(res)
+          })
+          .catch(error => {
+            console.log(error)
+            reject(error)
+          })
+      })
+    },
+    // 删除
+    PERMISSION_DELETE({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        api.PermissionDelete(params)
+          .then(res => {
+            console.log(res)
+            resolve(res)
+          })
+          .catch(error => {
+            console.log(error)
+            reject(error)
+          })
+      })
+    },
+    // 详情
+    PERMISSION_FETCH_DETAIL({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        api.PermissionDetailUser(params)
+          .then(res => {
+            console.log(res)
+            resolve(res)
+          })
+          .catch(error => {
+            console.log(error)
+          })
+      })
+    },
+    // 列表
+    PERMISSION_FETCH_LIST({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        api.PermissionList()
+          .then(res => {
+            console.log(res)
+            commit('PERMISSION_LIST', { list: res.data })
+            resolve(res)
+          })
+          .catch(error => {
+            console.log(error)
+          })
+      })
+    },
+    // 权限配置
+    PERMISSION_CONFIG({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        api.PermissionConfig()
+          .then(res => {
+            console.log(res)
+            commit('SET_CONFIG', { list: res.data })
+            resolve(res)
+          })
+          .catch(error => {
+            console.log(error)
+          })
+      })
+    },
+    // 添加对应权限员工
+    PERMISSION_USER_ADD({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        api.UserAdd(params)
+          .then(res => {
+            console.log(res)
+            resolve(res)
+          })
+          .catch(error => {
+            console.log(error)
+            reject(error)
+          })
+      })
+    },
+    // 更新员工权限
+    PERMISSION_USER_UPDATE({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        api.UserUpdate(params)
+          .then(res => {
+            console.log(res)
+            resolve(res)
+          })
+          .catch(error => {
+            console.log(error)
+            reject(error)
+          })
+      })
+    },
+    // 删除对应权限员工
+    PERMISSION_USER_DELETE({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        api.UserDelete(params)
+          .then(res => {
+            console.log(res)
+            resolve(res)
+          })
+          .catch(error => {
+            console.log(error)
+            reject(error)
+          })
       })
     }
   }

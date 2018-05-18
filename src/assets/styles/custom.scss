@@ -29,6 +29,10 @@ html, #app{
   }
 }
 
+.custom-dialog-form{
+  width: 550px;
+}
+
 .search-container{
   .el-form-item__content{
     max-width: 330px;
@@ -83,7 +87,6 @@ html, #app{
   .custom-btn{
     margin: 50px 0 20px;
     .btn-add{
-      width: 80%;
       color: #fff;
       background: #685762;
     }

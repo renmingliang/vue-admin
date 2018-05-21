@@ -85,6 +85,7 @@
             <el-form-item label-width="10px">
               <el-button type="primary" @click="handleFilter">查询</el-button>
               <el-button @click="handleExport">导出</el-button>
+              <a ref="download" style="display:none;" :href="exportUrl" target="_blank">导出</a>
             </el-form-item>
           </el-col>
         </el-row>
@@ -259,11 +260,22 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import { getToken } from '@/utils/auth'
+import qs from 'qs'
+
+const tempType = [
+  {label: '网页游戏改编权', value: '1'},
+  {label: '手机游戏改编权', value: '2'},
+  {label: '动漫改编权', value: '3'},
+  {label: '电视剧改编权', value: '4'},
+  {label: '周边衍生品改编权', value: '5'}
+]
 
 export default {
   name: 'search',
   data() {
     return {
+      exportUrl: 'javascript:;',
       listQuery: {
         page: 1,
         page_size: 10,
@@ -274,8 +286,8 @@ export default {
         remark: '',
         right_begin: '',
         right_end: '',
-        price_min: null,
-        price_max: null
+        price_min: '',
+        price_max: ''
       },
       multipleSelection: [],
       companyOptions: null
@@ -289,7 +301,7 @@ export default {
       'listLoading'
     ]),
     typeOptions() {
-      return [{label: '全部', value: '0'}].concat(this.adaptationName)
+      return [{label: '全部', value: '0'}].concat(tempType)
     }
   },
   created() {
@@ -331,15 +343,27 @@ export default {
     // 导出表格
     handleExport() {
       if (this.multipleSelection.length) {
-        this.$store.commit('LIST_LOADING', { loading: true })
+        const query = qs.stringify(this.listQuery)
+        const token = getToken()
+        const currentView = location.href.split('#')[1]
+        this.exportUrl = location.origin + `/ip/export-lists?access-token=${token}&${query}#${currentView}`
         setTimeout(() => {
-          this.$refs.multipleTable.clearSelection()
-          this.$store.commit('LIST_LOADING', { loading: false })
-          this.$message({
-            message: '导出成功',
-            type: 'success'
+          this.$refs.download.click()
+        }, 200)
+        /* this.$store.dispatch('IP_EXPORT', this.listQuery)
+          .then(res => {
+            this.$refs.multipleTable.clearSelection()
+            this.$message({
+              message: '导出成功',
+              type: 'success'
+            })
           })
-        }, 2000)
+          .catch(() => {
+            this.$message({
+              message: '导出失败，请稍后重试',
+              type: 'error'
+            })
+          }) */
       } else {
         this.$message({
           message: '请至少选择一项',
@@ -403,7 +427,7 @@ export default {
     // 根据改编权id显示对于文本值
     formateTypeLabel(type) {
       let tempLabel = ''
-      this.adaptationName.forEach(item => {
+      tempType.forEach(item => {
         if (type === item.value) {
           tempLabel = item.label
         }

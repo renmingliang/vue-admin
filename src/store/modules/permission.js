@@ -3,12 +3,14 @@ import api from '@/api'
 const permission = {
   state: {
     configData: [],
-    permissionData: []
+    permissionData: [],
+    permissionFilter: null
   },
 
   getters: {
     configData: state => state.configData,
     permissionData: state => state.permissionData,
+    permissionFilter: state => state.permissionFilter,
     permissionName: state => {
       return state.permissionData.map(item => {
         return {
@@ -16,12 +18,40 @@ const permission = {
           value: item.id
         }
       })
+    },
+    permissionUser: state => {
+      let temp = []
+      state.permissionData.forEach(item => {
+        if (item.users.length) {
+          item.users.map(user => {
+            temp.push(
+              {
+                label: item.id,
+                value: user
+              }
+            )
+          })
+        }
+      })
+      return temp
     }
   },
 
   mutations: {
     PERMISSION_LIST: (state, payload) => {
       state.permissionData = payload.list
+    },
+    PERMISSION_FILTER: (state, payload) => {
+      const name = payload.filterQuery.name === '0' ? '' : payload.filterQuery.name
+      const username = payload.filterQuery.username
+      state.permissionFilter = state.permissionData.filter(item => {
+        if (name && username) {
+          return (item.id === name && item.users.includes(username))
+        } else if (name || username) {
+          return (item.id === name || item.users.includes(username))
+        }
+        return true
+      })
     },
     SET_CONFIG: (state, payload) => {
       state.configData = payload.list

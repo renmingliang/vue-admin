@@ -11,7 +11,12 @@ const common = {
 
   mutations: {
     USER_SSO_LIST: (state, payload) => {
-      state.userList = payload.list
+      state.userList = payload.list.map(item => {
+        return {
+          value: item.result.name,
+          nickname: item.result.nickname
+        }
+      })
     }
   },
 

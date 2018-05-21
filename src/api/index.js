@@ -35,7 +35,14 @@ export default {
   },
   // IP录入
   IPEdit: (data) => {
-    return request.post('/ip/form-save', data)
+    return request.post('/ip/form-save', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      transformRequest: [function (data) {
+        return data
+      }]
+    })
   },
   // IP删除
   IPDelete: (data) => {
@@ -123,7 +130,11 @@ export default {
   },
   // 导出
   Export: (data) => {
-    return request.get('/ip/lists', { params: data })
+    return request.get('/ip/export-lists', { params: data })
+  },
+  // 文件上传
+  Upload: (data) => {
+    return request.post('/upload/upload-attachment', data)
   },
   // 操作日志列表
   LogList: (data) => {

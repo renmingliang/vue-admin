@@ -17,14 +17,7 @@
                 popper-class="custom-autocomplete"
                 v-model="filterQuery.username"
                 :trigger-on-focus="false"
-                :fetch-suggestions="querySearch"
-                @select="handleSuggestions">
-                <template slot-scope="{ item }">
-                  <div class="name">
-                    <span>{{ item.value }}</span>
-                    <span class="addr">{{ item.nickname }}</span>
-                  </div>
-                </template>
+                :fetch-suggestions="querySearchUser">
               </el-autocomplete>
             </el-form-item>
           </el-col>
@@ -98,7 +91,7 @@
         highlight-current-row
         border
         stripe
-        :data="permissionData">
+        :data="permissionFilter">
         <el-table-column
           fixed
           type="index"
@@ -188,8 +181,9 @@ export default {
   },
   computed: {
     ...mapGetters([
-      'permissionData',
+      'permissionFilter',
       'permissionName',
+      'permissionUser',
       'userList'
     ]),
     permissionOptions() {
@@ -197,28 +191,25 @@ export default {
     }
   },
   created() {
-    this.fetchPermissionName()
-    // this.fetchSsoUser()
+    this.fetchPermission()
+    this.fetchSsoUser()
   },
   mounted() {
     this.restaurants = this.loadAll()
   },
   methods: {
     // 获取所有权限名称
-    fetchPermissionName() {
+    fetchPermission() {
       this.$store.dispatch('PERMISSION_FETCH_LIST')
     },
     // 获取所有SSO用户
     fetchSsoUser() {
       this.$store.dispatch('USER_FETCH_SSO')
     },
-    // 获取数据
-    getList() {
-      this.$store.dispatch('PERMISSION_FETCH_LIST')
-    },
     // 搜索
     handleFilter() {
-      this.getList()
+      const filterQuery = this.filterQuery
+      this.$store.commit('PERMISSION_FILTER', {filterQuery})
     },
     // 新增员工
     submitForm() {
@@ -269,9 +260,9 @@ export default {
         })
       })
     },
-    // 模糊搜索匹配员工
+    // 模糊搜索匹配增加员工权限
     querySearch(queryString, cb) {
-      const tempData = this.restaurants
+      const tempData = this.userList
       const results = queryString ? tempData.filter(this.createStateFilter(queryString)) : tempData
       clearTimeout(this.timeout)
       this.timeout = setTimeout(() => {
@@ -285,6 +276,15 @@ export default {
     },
     handleSuggestions(item) {
       this.ruleForm.ks = 1
+    },
+    // 模糊搜索匹配已有权限员工
+    querySearchUser(queryString, cb) {
+      const tempData = this.permissionUser
+      const results = queryString ? tempData.filter(this.createStateFilter(queryString)) : tempData
+      clearTimeout(this.timeout)
+      this.timeout = setTimeout(() => {
+        cb(results)
+      }, 200)
     },
     loadAll() {
       return [

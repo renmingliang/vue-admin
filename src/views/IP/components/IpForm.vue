@@ -44,8 +44,15 @@
         <el-collapse-item title="附件信息" :name="2">
           <div class="common-wrap">
             <el-upload
-              action="https://jsonplaceholder.typicode.com/posts/"
+              ref="upload"
+              action="/"
               list-type="picture-card"
+              :key="$route.path"
+              :disabled="isLook"
+              :auto-upload="false"
+              :file-list="listFile"
+              :before-upload="newFiles"
+              :on-change="handleChange"
               :on-preview="handlePictureCardPreview"
               :on-remove="handleRemove">
               <i class="el-icon-plus">
@@ -131,7 +138,7 @@ const defaultForm = {
   price: '',
   special_conditions: '',
   remark: '',
-  attachment: '',
+  attachment: [],
   rights: [
     {
       id: 0,
@@ -164,6 +171,7 @@ export default {
   },
   data() {
     return {
+      uploadForm: new FormData(),
       activeNames: [1, 2, 3],
       dialogImageUrl: '',
       dialogVisible: false,
@@ -191,7 +199,8 @@ export default {
   },
   computed: {
     ...mapGetters([
-      'listLoading'
+      'listLoading',
+      'listFile'
     ])
   },
   created() {
@@ -202,6 +211,19 @@ export default {
     }
   },
   methods: {
+    newFiles (file) {
+      // this.uploadForm.append('files[0]', file)
+      console.log(file)
+      return false
+    },
+    handleChange(file, fileList) {
+      console.log(fileList)
+      for (let index = 0; index < fileList.length; index++) {
+        if (fileList[index].raw) {
+          this.uploadForm.append(`files[${index}]`, fileList[index].raw)
+        }
+      }
+    },
     // 0.获取数据
     fetchData() {
       this.$store.dispatch('IP_FETCH_DETAIL', {id: this.id})
@@ -217,33 +239,31 @@ export default {
     submitForm() {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
-          const tempIP = {
-            'ip[id]': this.ruleForm.id,
-            'ip[name]': this.ruleForm.name,
-            'ip[company]': this.ruleForm.company,
-            'ip[price]': this.ruleForm.price,
-            'ip[special_conditions]': this.ruleForm.special_conditions,
-            'ip[remark]': this.ruleForm.remark,
-            'ip[attachment]': this.ruleForm.attachment
-          }
+          // 注意这里提交表单方式是'Content-Type': 'multipart/form-data'
+          this.uploadForm.append('ip[id]', this.ruleForm.id)
+          this.uploadForm.append('ip[name]', this.ruleForm.name)
+          this.uploadForm.append('ip[company]', this.ruleForm.company)
+          this.uploadForm.append('ip[price]', this.ruleForm.price)
+          this.uploadForm.append('ip[special_conditions]', this.ruleForm.special_conditions)
+          this.uploadForm.append('ip[remark]', this.ruleForm.remark)
+          this.uploadForm.append('ip[attachment]', this.ruleForm.attachment)
 
-          let tempSub = {}
           this.ruleForm.rights.forEach((column, index) => {
-            tempSub[`ip_right[${index}][id]`] = column.id
-            tempSub[`ip_right[${index}][ip_id]`] = column.ip_id
-            tempSub[`ip_right[${index}][sub_right_id]`] = column.sub_right_id
-            tempSub[`ip_right[${index}][is_exclusive_license]`] = column.is_exclusive_license
-            tempSub[`ip_right[${index}][can_authorized_transfer]`] = column.can_authorized_transfer
-            tempSub[`ip_right[${index}][right_begin]`] = column.right_begin
-            tempSub[`ip_right[${index}][right_end]`] = column.right_end
-            tempSub[`ip_right[${index}][cooperation_area]`] = column.cooperation_area
-            return tempSub
+            this.uploadForm.append(`ip_right[${index}][id]`, column.id)
+            this.uploadForm.append(`ip_right[${index}][ip_id]`, column.ip_id)
+            this.uploadForm.append(`ip_right[${index}][sub_right_id]`, column.sub_right_id)
+            this.uploadForm.append(`ip_right[${index}][is_exclusive_license]`, column.is_exclusive_license)
+            this.uploadForm.append(`ip_right[${index}][can_authorized_transfer]`, column.can_authorized_transfer)
+            this.uploadForm.append(`ip_right[${index}][right_begin]`, column.right_begin)
+            this.uploadForm.append(`ip_right[${index}][right_end]`, column.right_end)
+            this.uploadForm.append(`ip_right[${index}][cooperation_area]`, column.cooperation_area)
           })
 
-          const params = Object.assign({}, tempIP, tempSub)
-
-          this.$store.dispatch('IP_EDIT', params)
+          this.$store.dispatch('IP_EDIT', this.uploadForm)
             .then(res => {
+              // 处理上传file
+              this.$refs.upload.submit()
+
               this.$confirm('文件已成功提交, 是否继续操作?', '提示', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
@@ -314,6 +334,13 @@ export default {
     // 5.删除上传文件
     handleRemove(file, fileList) {
       console.log(file, fileList)
+      this.ruleForm.attachment = this.ruleForm.attachment.filter(item => {
+        if (item === file.url) {
+          return false
+        } else {
+          return true
+        }
+      })
     },
     // 6.上传文件预览
     handlePictureCardPreview(file) {
@@ -323,6 +350,18 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+.common-wrap{
+  .el-upload-list--picture-card .el-upload-list__item-thumbnail{
+    height: 83%;
+  }
+  .el-upload-list--picture-card .el-upload-list__item-name{
+    display: block;
+    margin-right: 0;
+  }
+}
+</style>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
 .box-container{

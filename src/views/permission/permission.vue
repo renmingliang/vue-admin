@@ -24,9 +24,9 @@
           <el-col :span="10">
             <el-form-item label-width="10px">
               <el-button type="primary" @click="handleFilter">查询</el-button>
-              <el-button type="info">
-                <router-link :to="{name:'create-permission'}">新增权限</router-link>
-              </el-button>
+              <router-link :to="{name:'create-permission'}">
+                <el-button type="info">新增权限</el-button>
+              </router-link>
               <el-button type="info" @click="dialogFormVisible = true">新增员工</el-button>
             </el-form-item>
           </el-col>
@@ -70,7 +70,7 @@
             v-model="ruleForm.ipr_permission"
             placeholder="请选择">
             <el-option
-              v-for="item in permissionOptions"
+              v-for="item in permissionName"
               :key="item.value"
               :label="item.label"
               :value="item.value">
@@ -126,7 +126,8 @@
                   <span
                     v-for="(user, index) in scope.row.users"
                     :key="index">
-                    {{ user }} {{ index === scope.row.users.length-1? '':'、' }}
+                      <em :class="user === filterQuery.username? 'hightlight-color' : ''">{{ user }}</em>
+                      {{ index === scope.row.users.length-1? '':'、' }}
                   </span>
                 </router-link>
               </el-tooltip>
@@ -137,14 +138,10 @@
           align="center"
           width="240">
           <template slot-scope="scope">
-            <el-button
-              size="mini"
-              icon="el-icon-edit">
-              <router-link
-                :to="{name:'edit-permission', params: {id: scope.row.id}}">
-                编辑
-              </router-link>
-            </el-button>
+            <router-link
+              :to="{name:'edit-permission', params: {id: scope.row.id}}">
+              <el-button size="mini" icon="el-icon-edit">编辑</el-button>
+            </router-link>
             <el-button
             size="mini"
             type="danger"
@@ -160,12 +157,14 @@
 
 <script>
 import { mapGetters } from 'vuex'
+const defalutOptions = [
+  {label: '全部', value: '0'}
+]
 
 export default {
   data() {
     return {
       timeout: null,
-      list: null,
       dialogFormVisible: false,
       listLoading: false,
       filterQuery: {
@@ -187,15 +186,16 @@ export default {
       'userList'
     ]),
     permissionOptions() {
-      return [{label: '全部', value: '0'}].concat(this.permissionName)
+      if (this.permissionName) {
+        return defalutOptions.concat(this.permissionName)
+      } else {
+        return defalutOptions
+      }
     }
   },
   created() {
     this.fetchPermission()
     this.fetchSsoUser()
-  },
-  mounted() {
-    this.restaurants = this.loadAll()
   },
   methods: {
     // 获取所有权限名称
@@ -213,21 +213,28 @@ export default {
     },
     // 新增员工
     submitForm() {
+      const that = this
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
+          this.listLoading = true
           this.$store.dispatch('PERMISSION_USER_ADD', this.ruleForm)
             .then(res => {
+              this.listLoading = false
               this.dialogFormVisible = false
               this.$message({
                 type: 'success',
-                message: '操作成功!'/* ,
+                message: '操作成功!',
                 onClose: function() {
-                  location.reload()
-                } */
+                  that.$store.dispatch('PERMISSION_FETCH_LIST')
+                    .then(() => {
+                      that.handleFilter()
+                    })
+                }
               })
             })
-            .catch(() => {
-              this.$message.error('提交失败，请稍微再试')
+            .catch(err => {
+              this.listLoading = false
+              console.log(err.msg)
             })
         } else {
           return false
@@ -242,22 +249,22 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$store.dispatch('PERMISSION_DELETE', { id: row.pid })
+        this.listLoading = true
+        this.$store.dispatch('PERMISSION_DELETE', { id: row.id })
           .then(res => {
-            this.list.splice(index, 1)
+            this.listLoading = false
+            this.permissionFilter.splice(index, 1)
             this.$message({
               type: 'success',
               message: '删除成功!'
             })
           })
-          .catch(() => {
-            this.$message.error('删除失败，请稍后再试')
+          .catch(err => {
+            this.listLoading = false
+            console.log(err.msg)
           })
       }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '已取消删除'
-        })
+        this.$message.info('已取消删除')
       })
     },
     // 模糊搜索匹配增加员工权限
@@ -285,22 +292,16 @@ export default {
       this.timeout = setTimeout(() => {
         cb(results)
       }, 200)
-    },
-    loadAll() {
-      return [
-        { 'value': 'test', 'nickname': '测试' },
-        { 'value': 'test1', 'nickname': '测试1' },
-        { 'value': 'test2', 'nickname': '测试2' },
-        { 'value': 'test3', 'nickname': '测试3' },
-        { 'value': 'test4', 'nickname': '测试4' },
-        { 'value': 'test5', 'nickname': '测试5' }
-      ]
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
+.hightlight-color{
+  background: #ff9632;
+  padding: 0 5px;
+}
 .custom-autocomplete {
   li {
     line-height: normal;

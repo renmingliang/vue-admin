@@ -11,6 +11,7 @@
           <el-col :span="7">
             <el-form-item label="开始时间">
               <el-date-picker
+                :picker-options="startDateOpt"
                 type="date"
                 placeholder="请选择"
                 value-format="yyyy-MM-dd"
@@ -20,6 +21,7 @@
           <el-col :span="7">
             <el-form-item label="结束时间">
               <el-date-picker
+                :picker-options="endDateOpt"
                 type="date"
                 placeholder="请选择"
                 value-format="yyyy-MM-dd"
@@ -70,7 +72,7 @@
 
       </el-table>
 
-      <div v-if="logTotal>10" class="search-pagination">
+      <div class="search-pagination">
         <el-pagination
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
@@ -86,12 +88,14 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+// import { mapGetters } from 'vuex'
 
 export default {
   name: 'log',
   data() {
     return {
+      logData: null,
+      logTotal: null,
       listLoading: false,
       listQuery: {
         page: 1,
@@ -99,21 +103,34 @@ export default {
         uid: '',
         time_begin: '',
         time_end: ''
+      },
+      startDateOpt: {
+        disabledDate: (time) => {
+          return time.getTime() > Date.parse(this.listQuery.time_end)
+        }
+      },
+      endDateOpt: {
+        disabledDate: (time) => {
+          return time.getTime() < Date.parse(this.listQuery.time_begin)
+        }
       }
     }
   },
   computed: {
-    ...mapGetters([
+    /* ...mapGetters([
       'logData',
       'logTotal'
-    ])
+    ]) */
   },
   methods: {
     // 获取数据
     getList() {
       this.listLoading = true
       this.$store.dispatch('LOG_FETCH_LIST', this.listQuery)
-        .then(() => {
+        .then(res => {
+          const result = res.data
+          this.logData = result.data
+          this.logTotal = +result.total_count
           this.listLoading = false
         })
         .catch(() => {
@@ -132,7 +149,7 @@ export default {
     },
     // 处理分页
     handleCurrentChange(val) {
-      this.listQuery.page_size = val
+      this.listQuery.page = val
       this.getList()
     }
   }

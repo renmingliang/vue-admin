@@ -41,16 +41,17 @@ service.interceptors.response.use(
         duration: 5 * 1000
       })
 
-      // 10008:非法的token; 10012:其他客户端登录了;  10014:Token 过期了;
+      // 10005:没有操作权限; 10008:非法的token; 10012:其他客户端登录了;  10014:Token 过期了;
       /* if (res.code === 10014) {
-        MessageBox.confirm('你已被登出，可以取消继续留在该页面，或者重新登录', '确定登出', {
-          confirmButtonText: '重新登录',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          store.dispatch('FedLogOut').then(() => {
-            location.reload()// 为了重新实例化vue-router对象 避免bug
-          })
+        Message({
+          message: '登录信息已过期，请重新登录',
+          type: 'warning',
+          duration: 5 * 1000,
+          onClose: function() {
+            store.dispatch('FedLogOut').then(() => {
+              location.reload()// 为了重新实例化vue-router对象 避免bug
+            })
+          }
         })
       } */
       return Promise.reject(res)

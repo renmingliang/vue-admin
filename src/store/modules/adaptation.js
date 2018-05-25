@@ -1,31 +1,49 @@
 import api from '@/api'
+import { storage } from '@/utils'
+
+const KEY_NAME = 'adaptationName'
+const KEY_TOP = 'adaptationTop'
 
 const adaptation = {
   state: {
-    adapataionData: []
+    adaptationData: [],
+    adaptationTop: storage.get(KEY_TOP),
+    adaptationName: storage.get(KEY_NAME)
   },
 
   getters: {
-    adapataionData: state => state.adapataionData,
-    adaptationName: state => {
-      return state.adapataionData.map(item => {
+    adaptationData: state => state.adaptationData,
+    adaptationTop: state => state.adaptationTop,
+    adaptationName: state => state.adaptationName
+  },
+
+  mutations: {
+    ADAPTATION_LIST: (state, payload) => {
+      state.adaptationData = payload.list
+    },
+    ADAPTATION_TOP: (state, payload) => {
+      state.adaptationTop = payload.list.map(item => {
         return {
           label: item.name,
           value: item.id
         }
       })
-    }
-  },
-
-  mutations: {
-    ADAPATATION_LIST: (state, payload) => {
-      state.adapataionData = payload.list
+      storage.set(KEY_TOP, state.adaptationTop)
+    },
+    ADAPTATION_NAME: (state, payload) => {
+      state.adaptationName = payload.list.map(item => {
+        return {
+          label: item.name,
+          value: item.id
+        }
+      })
+      storage.set(KEY_NAME, state.adaptationName)
     }
   },
 
   actions: {
     // 新增与编辑
-    ADAPATATION_EDIT({ commit }, params) {
+    ADAPTATION_EDIT({ commit }, params) {
       return new Promise((resolve, reject) => {
         api.AdaptationEdit(params)
           .then(res => {
@@ -39,7 +57,7 @@ const adaptation = {
       })
     },
     // 删除
-    ADAPATATION_DELETE({ commit }, params) {
+    ADAPTATION_DELETE({ commit }, params) {
       return new Promise((resolve, reject) => {
         api.AdaptationDelete(params)
           .then(res => {
@@ -53,12 +71,16 @@ const adaptation = {
       })
     },
     // 子级所有
-    ADAPATATION_FETCH_LIST({ commit }, params) {
+    ADAPTATION_FETCH_LIST({ commit }, params) {
       return new Promise((resolve, reject) => {
         api.AdaptationList(params)
           .then(res => {
             console.log(res)
-            commit('ADAPATATION_LIST', { list: res.data })
+            // 若未传参，初始获取所有类别
+            if (!params) {
+              commit('ADAPTATION_NAME', { list: res.data })
+            }
+            commit('ADAPTATION_LIST', { list: res.data })
             resolve(res)
           })
           .catch(error => {
@@ -67,11 +89,12 @@ const adaptation = {
       })
     },
     // TOP改编权
-    ADAPATATION_FETCH_TOP({ commit }, params) {
+    ADAPTATION_FETCH_TOP({ commit }, params) {
       return new Promise((resolve, reject) => {
         api.AdaptationTop()
           .then(res => {
             console.log(res)
+            commit('ADAPTATION_TOP', { list: res.data })
             resolve(res)
           })
           .catch(error => {

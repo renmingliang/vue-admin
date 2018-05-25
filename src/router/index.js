@@ -19,12 +19,15 @@ Vue.use(Router)
 * meta : {
     title: 'title'               the name show in submenu and breadcrumb (recommend set)
     icon: 'svg-name'             the icon show in the sidebar,
+    code: 'code-name'            the name compare with backend request router-data,
   }
 **/
 export const constantRouterMap = [
   { path: '/login', name: 'login', component: _import('login/index'), hidden: true },
+  { path: '/404', component: _import('errorPage/404'), hidden: true },
+  { path: '/401', component: _import('errorPage/401'), hidden: true },
   {
-    path: '/',
+    path: '',
     component: Layout,
     redirect: '/dashboard',
     name: 'dashboard',
@@ -154,11 +157,13 @@ export const asyncRouterMap = [
     name: 'action',
     component: Layout,
     redirect: 'noredirect',
+    meta: { title: '操作日志', icon: 'tree', code: 'action' },
     children: [{
       path: 'log',
       name: 'log',
       component: _import('log/log'),
-      meta: { title: '操作日志', icon: 'tree', code: 'action' }
+      meta: { title: '操作日志', icon: 'tree', code: 'log' }
     }]
-  }
+  },
+  { path: '*', redirect: '/404', hidden: true }
 ]

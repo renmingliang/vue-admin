@@ -1,7 +1,7 @@
 <template>
   <div class="box-container">
     <el-form
-      v-loading="listLoading"
+      v-loading="permissionLoading"
       :model="ruleForm"
       :rules="rules"
       ref="ruleForm"
@@ -10,12 +10,12 @@
         <el-collapse-item title="权限基本信息" :name="1">
           <div class="common-wrap">
             <el-form-item label="权限名称" prop="name">
-              <el-input :disabled="isLook" v-model="ruleForm.name"></el-input>
+              <el-input :disabled="(isLook || isUser)" v-model="ruleForm.name"></el-input>
             </el-form-item>
             <el-form-item label="权限说明">
               <el-input
                 type="textarea"
-                :disabled="isLook"
+                :disabled="(isLook || isUser)"
                 :autosize="{ minRows: 2 }"
                 placeholder="请输入内容"
                 v-model="ruleForm.desc">
@@ -82,24 +82,6 @@
             </el-form-item>
 
             <el-form-item
-              label="权限页面："
-              prop="menu"
-              :rules="{required: true, message: '请选择权限页面', trigger: 'change'}">
-              <el-checkbox-group
-                :disabled="isLook"
-                v-model="ruleForm.menu">
-                <ul>
-                  <li v-for="(item, index) in configData.permission" :key="index">
-                    <el-checkbox
-                      v-for="child in item.children"
-                      :key="child.id"
-                      :label="child.id">{{ item.name === child.name? child.name : item.name + '-' + child.name}}</el-checkbox>
-                  </li>
-                </ul>
-              </el-checkbox-group>
-            </el-form-item>
-
-            <el-form-item
               label="权限设置："
               prop="permission"
               :rules="{required: true, message: '请选择权限设置', trigger: 'change'}">
@@ -108,14 +90,20 @@
                 v-model="ruleForm.permission">
                 <ul>
                   <li v-for="(item, index) in configData.permission" :key="index">
-                    <div
+                    <el-card
+                      class="custom-group"
                       v-for="child in item.children"
-                      :key="child.id">
-                        <el-checkbox
+                      :key="child.id"
+                      shadow="never">
+                        <div slot="header">
+                          <span style="font-size: 14px;">{{child.name}}-{{child.id}}-{{child.pid}}</span>
+                        </div>
+                        <div
                           v-for="permission in child.permissions"
-                          :key="permission.id"
-                          :label="permission.id">{{permission.desc}}</el-checkbox>
-                    </div>
+                          :key="permission.id">
+                          <el-checkbox :label="permission.id">{{permission.desc}} - {{permission.id}}</el-checkbox>
+                        </div>
+                    </el-card>
                   </li>
                 </ul>
               </el-checkbox-group>
@@ -193,10 +181,9 @@
         label-width="110px"
         :model="userForm">
         <el-form-item
-          disabled
           label="员工姓名"
           prop="username">
-          <el-input v-model="username"></el-input>
+          <el-input disabled v-model="username"></el-input>
         </el-form-item>
         <el-form-item
           label="员工权限"
@@ -265,7 +252,6 @@ export default {
         ipr_permission: ''
       },
       dialogFormVisible: false,
-      listLoading: false,
       activeNames: [1, 2, 3],
       ruleForm: Object.assign({}, defaultForm),
       rules: {
@@ -278,6 +264,8 @@ export default {
   computed: {
     ...mapGetters([
       'configData',
+      'configOptions',
+      'permissionLoading',
       'permissionName'
     ])
   },
@@ -309,21 +297,38 @@ export default {
     submitForm() {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
+          const tempMenu = []
+          this.configOptions.forEach(item => {
+            this.ruleForm.permission.forEach(child => {
+              if (item.permission_id.includes(child)) {
+                if (!tempMenu.includes(item.id)) {
+                  tempMenu.push(item.id)
+                }
+                if (!tempMenu.includes(item.pid)) {
+                  tempMenu.push(item.pid)
+                }
+              }
+            })
+          })
+          this.ruleForm.menu = tempMenu
           const params = this.ruleForm
+
+          console.log(params)
           this.$store.dispatch('PERMISSION_EDIT', params)
             .then(res => {
-              this.$confirm('文件已成功提交, 是否继续操作?', '提示', {
+              this.$confirm('文件已成功提交, 是否查看详情?', '提示', {
+                closeOnClickModal: false,
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'success'
               }).then(() => {
-                // this.$router.push({ name: 'permission', replace: true })
+                this.$router.push({ name: 'look-permission', params: {id: String(res.data)} })
               }).catch(() => {
-                // this.$router.push({ name: 'search', replace: true })
+                this.$router.push({ name: 'search' })
               })
             })
-            .catch(() => {
-              this.$message.error('提交失败，请稍微再试')
+            .catch(err => {
+              console.log(err.msg)
             })
         } else {
           return false
@@ -332,6 +337,7 @@ export default {
     },
     // 3.提交修改用户权限表单
     submitUserForm() {
+      const that = this
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
           this.$store.dispatch('PERMISSION_USER_UPDATE', this.userForm)
@@ -341,12 +347,12 @@ export default {
                 type: 'success',
                 message: '操作成功!',
                 onClose: function() {
-                  location.reload()
+                  that.fetchData()
                 }
               })
             })
-            .catch(() => {
-              this.$message.error('提交失败，请稍微再试')
+            .catch(err => {
+              console.log(err.msg)
             })
         } else {
           return false
@@ -363,7 +369,7 @@ export default {
       }
       this.dialogFormVisible = true
     },
-    // 5.删除子改编权
+    // 5.删除用户
     handleDelete(index, row) {
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -371,27 +377,31 @@ export default {
         type: 'warning'
       }).then(() => {
         this.$store.dispatch('PERMISSION_USER_DELETE', { id: row.id })
-          .then(res => {
+          .then(() => {
             this.users.splice(index, 1)
             this.$message({
               type: 'success',
               message: '删除成功!'
             })
           })
-          .catch(() => {
-            this.$message.error('删除失败，请稍后再试')
+          .catch(err => {
+            console.log(err.msg)
           })
       }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '已取消删除'
-        })
+        this.$message.error('已取消删除')
       })
     }
   }
 }
 </script>
 
-<style rel="stylesheet/scss" lang="scss" scoped>
-
+<style rel="stylesheet/scss" lang="scss">
+.custom-group{
+  float: left;
+  margin-right: 20px;
+  margin-bottom: 20px;
+  .el-card__header{
+    padding: 5px 20px;
+  }
+}
 </style>

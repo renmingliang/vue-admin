@@ -9,13 +9,15 @@ export default {
   logout: () => {
     return request.post('/site/logout')
   },
-  /* // 用户权限菜单
+  // 用户信息
   getInfo: () => {
+    return request.post('/user/info')
+  },
+  // 权限菜单
+  getMenu: () => {
     return request.post('/user/permission')
-  }, */
-  // 所有菜单
-  getInfo: () => {
-    return request.post('/menu/all')
+    // 所有菜单
+    // return request.post('/menu/all')
   },
   // 添加用户权限
   UserAdd: (data) => {

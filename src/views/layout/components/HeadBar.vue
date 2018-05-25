@@ -8,8 +8,8 @@
     </div>
     <div class="admin-control">
       <div class="avator-wrap">
-        <img src="../../../assets/images/icon-ip-user.png">
-        <span>test name</span>
+        <img :src="userAvator">
+        <span class="username">{{name}}</span>
       </div>
       <el-tooltip effect="dark" content="全屏" placement="bottom">
         <screenfull class="screenfull"></screenfull>
@@ -24,6 +24,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import Screenfull from '@/components/Screenfull'
 
 export default {
@@ -31,6 +32,18 @@ export default {
   data() {
     return {
     }
+  },
+  computed: {
+    ...mapGetters([
+      'name',
+      'avatar'
+    ]),
+    userAvator() {
+      return this.avatar ? this.avatar : require('../../../assets/images/icon-ip-user.png')
+    }
+  },
+  created() {
+    this.$store.dispatch('GetInfo')
   },
   methods: {
     logout() {
@@ -49,7 +62,7 @@ export default {
 @import '../../../assets/styles/mixin.scss';
 
 .head-container{
-  background-color: #0c061e;
+  background-color: #2e3137;
   color: #fff;
   height: 60px;
   line-height: 60px;
@@ -86,17 +99,21 @@ export default {
     .avator-wrap{
       display: inline-block;
       img{
-        width: 30px;
-        height: 30px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
-        vertical-align: -10px;
+        vertical-align: -12px;
+      }
+      .username{
+        display: inline-block;
+        padding-left: 5px;
       }
     }
     .logout{
       display: inline-block;
-      padding: 0 18px;
-      background: #565353;
       cursor: pointer;
+      background: #635b59;
+      padding: 0 10px;
       img{
         vertical-align: -8px;
       }

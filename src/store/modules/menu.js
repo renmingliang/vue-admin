@@ -51,7 +51,8 @@ function handleRoles(roles) {
 const menu = {
   state: {
     routers: constantRouterMap,
-    addRouters: []
+    addRouters: [],
+    control: []
   },
   mutations: {
     SET_ROUTERS: (state, routers) => {

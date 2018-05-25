@@ -19,7 +19,7 @@ export function param2Obj(str) {
 /**
  * localStorage
  */
-export const local = {
+export const storage = {
   set: function (key, val) {
     localStorage.setItem(key, JSON.stringify(val))
   },
@@ -28,10 +28,13 @@ export const local = {
     if (res) {
       return JSON.parse(res)
     } else {
-      return res
+      return null
     }
   },
   remove: function (key) {
     localStorage.removeItem(key)
+  },
+  clear: function () {
+    localStorage.clear()
   }
 }

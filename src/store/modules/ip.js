@@ -4,16 +4,13 @@ const ip = {
   state: {
     listLoading: false,
     listData: null,
-    listTotal: null,
-    listName: null,
-    listFile: []
+    listTotal: null
   },
 
   getters: {
     listLoading: state => state.listLoading,
     listData: state => state.listData,
-    listTotal: state => state.listTotal,
-    listFile: state => state.listFile
+    listTotal: state => state.listTotal
   },
 
   mutations: {
@@ -21,17 +18,8 @@ const ip = {
       state.listLoading = payload.loading
     },
     IP_LIST: (state, payload) => {
-      state.listData = payload.list
-      state.listTotal = payload.list.length
-    },
-    FILE_LIST: (state, payload) => {
-      state.listFile = payload.list.map(item => {
-        const tempIndex = item.lastIndexOf('/') + 1
-        return {
-          name: item.substr(tempIndex),
-          url: item
-        }
-      })
+      state.listData = payload.list.data
+      state.listTotal = +payload.list.total_count
     }
   },
 
@@ -124,7 +112,6 @@ const ip = {
         api.IPDetail(params)
           .then(res => {
             console.log(res)
-            commit('FILE_LIST', { list: res.data.attachment })
             commit('LIST_LOADING', { loading: false })
             resolve(res)
           })
@@ -156,7 +143,7 @@ const ip = {
           .then(res => {
             console.log(res)
             commit('LIST_LOADING', { loading: false })
-            commit('IP_LIST', { list: res.data.data })
+            commit('IP_LIST', { list: res.data })
             resolve(res)
           })
           .catch(error => {

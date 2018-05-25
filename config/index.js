@@ -5,6 +5,7 @@
 const path = require('path')
 
 const target = 'http://10.10.40.33:8314'  //内网环境
+// const target = 'http://115.159.189.146:8081/'  //沙箱
 
 module.exports = {
   dev: {

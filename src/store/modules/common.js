@@ -1,15 +1,29 @@
 import api from '@/api'
+import { storage } from '@/utils'
+
+const KEY_NAME = 'companyName'
 
 const common = {
   state: {
-    userList: null
+    userList: null,
+    companyName: storage.get(KEY_NAME)
   },
 
   getters: {
-    userList: state => state.userList
+    userList: state => state.userList,
+    companyName: state => state.companyName
   },
 
   mutations: {
+    COMPANY_LIST: (state, payload) => {
+      state.companyName = payload.list.map(item => {
+        return {
+          label: item.name,
+          value: item.id
+        }
+      })
+      storage.set(KEY_NAME, state.companyName)
+    },
     USER_SSO_LIST: (state, payload) => {
       state.userList = payload.list.map(item => {
         return {
@@ -54,6 +68,7 @@ const common = {
         api.CompanyList()
           .then(res => {
             console.log(res)
+            commit('COMPANY_LIST', { list: res.data })
             resolve(res)
           })
           .catch(error => {

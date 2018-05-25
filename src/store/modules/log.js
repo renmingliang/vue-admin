@@ -13,8 +13,8 @@ const log = {
 
   mutations: {
     LOG_LIST: (state, payload) => {
-      state.logData = payload.list
-      state.logTotal = payload.list.length
+      state.logData = payload.list.data
+      state.logTotal = +payload.list.total_count
     }
   },
 
@@ -25,7 +25,7 @@ const log = {
         api.LogList(params)
           .then(res => {
             console.log(res)
-            commit('LOG_LIST', { list: res.data.data })
+            commit('LOG_LIST', { list: res.data })
             resolve(res)
           })
           .catch(error => {

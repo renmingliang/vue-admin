@@ -13,18 +13,24 @@
               <el-autocomplete
                 placeholder="请输入内容"
                 v-model="ruleForm.ip_name"
-                :disabled="isLook"
+                :disabled="(isLook || isEdit) && ruleForm.ip_name !== ''"
                 :fetch-suggestions="querySearch"
                 :trigger-on-focus="false"
                 @select="handleSuggestions"
               ></el-autocomplete>
             </el-form-item>
-            <el-form-item label="改编权类别" prop="sub_right_id">
+            <el-form-item label="改编权类别" prop="ip_right.sub_right_id">
               <el-select
-                :disabled="isLook"
+                :disabled="(isLook || isEdit) && ruleForm.ip_right.sub_right_id !== ''"
                 v-model="ruleForm.ip_right.sub_right_id"
+                @change="handleIpRightIp"
                 placeholder="请选择">
-                <el-option v-for="item in typeOptions" :label="item.label" :value="item.value" :key="item.value"></el-option>
+                  <template v-if="(isLook || isEdit)">
+                    <el-option v-for="item in typeOptions" :label="item.label" :value="item.value" :key="item.value"></el-option>
+                  </template>
+                  <template v-else>
+                    <el-option v-for="item in ipTypeOptions" :label="item.label" :value="item.value" :key="item.value"></el-option>
+                  </template>
               </el-select>
             </el-form-item>
           </div>
@@ -33,25 +39,34 @@
         <el-collapse-item
           v-for="(column, index) in ruleForm.projects"
           :key="index"
-          :title="`项目信息${index + 1 > 10 ? index+1 : '0'+(index+1)}`"
           :name="index+2">
+          <template slot="title">
+            <span>{{ `项目信息${index + 1 > 10 ? index+1 : '0'+(index+1)}` }}</span>
+            <span :class="`project-status status-${column.project_status}`">{{ formateShowStatus(column.project_status) }}</span>
+          </template>
           <div class="common-wrap">
             <el-form-item
               label="项目名称"
               :prop="'projects.' + index + '.name'"
-              :rules="{required: true, message: '请输入项目名称', trigger: 'blur'}">
+              :rules="{required: true, trigger: 'blur',validator: validateProjectName }">
               <el-input :disabled="isLook" v-model="column.name" clearable></el-input>
             </el-form-item>
 
-            <el-form-item label="项目类型">
+            <el-form-item label="项目类型"
+              :prop="'projects.' + index + '.type'"
+              :rules="{trigger: 'blur',validator: validate20 }">
               <el-input :disabled="isLook" v-model="column.type" clearable></el-input>
             </el-form-item>
 
-            <el-form-item label="合作公司">
+            <el-form-item label="合作公司"
+              :prop="'projects.' + index + '.cooperation_company'"
+              :rules="{trigger: 'blur',validator: validate20 }">
               <el-input :disabled="isLook" v-model="column.cooperation_company" clearable></el-input>
             </el-form-item>
 
-            <el-form-item label="合作形式">
+            <el-form-item label="合作形式"
+              :prop="'projects.' + index + '.cooperation_type'"
+              :rules="{trigger: 'blur',validator: validate50 }">
               <el-input :disabled="isLook" v-model="column.cooperation_type" clearable></el-input>
             </el-form-item>
 
@@ -101,12 +116,13 @@
 </template>
 
 <script>
+import { validateInput } from '@/utils/validate'
 import { mapGetters } from 'vuex'
 
 const defaultForm = {
   ip_name: '',
   ip_right: {
-    id: null,
+    id: 0,
     sub_right_id: ''
   },
   projects: [
@@ -145,6 +161,7 @@ export default {
   data() {
     return {
       activeNames: [1, 2],
+      ipTypeOptions: null,
       ruleForm: Object.assign({}, defaultForm),
       rules: {
         ip_name: [
@@ -154,7 +171,6 @@ export default {
           { required: true, message: '请选择改编权类别', trigger: 'change' }
         ]
       },
-      typeOptions: [],
       statusOptions: [
         {label: '正常', value: '0'},
         {label: '异常', value: '1'},
@@ -164,8 +180,16 @@ export default {
   },
   computed: {
     ...mapGetters([
+      'adaptationName',
       'projectLoading'
-    ])
+    ]),
+    typeOptions() {
+      if (this.adaptationName) {
+        return this.adaptationName
+      } else {
+        return []
+      }
+    }
   },
   created() {
     if (this.isEdit || this.isLook) {
@@ -175,6 +199,29 @@ export default {
     }
   },
   methods: {
+    validateProjectName(rule, value, callback) {
+      if (!value) {
+        callback(new Error('请输入项目名称'))
+      } else if (value.length > 20) {
+        callback(new Error('输入内容不得超过20个字符'))
+      } else {
+        callback()
+      }
+    },
+    validate20(rule, value, callback) {
+      if (validateInput(value, 20)) {
+        callback(new Error('输入内容不得超过20个字符'))
+      } else {
+        callback()
+      }
+    },
+    validate50(rule, value, callback) {
+      if (validateInput(value, 50)) {
+        callback(new Error('输入内容不得超过50个字符'))
+      } else {
+        callback()
+      }
+    },
     // 0.获取数据
     fetchData() {
       this.$store.dispatch('PROJECT_FETCH_DETAIL', {ip_right_id: this.id})
@@ -190,10 +237,11 @@ export default {
     submitForm() {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
+          const tempIpRightId = this.id !== '0' ? this.id : this.ruleForm.ip_right.id
+
           let tempSub = {}
           this.ruleForm.projects.forEach((column, index) => {
-            tempSub[`project[${index}][ip_right_id]`] = this.ruleForm.ip_right.id
-
+            tempSub[`project[${index}][ip_right_id]`] = tempIpRightId
             tempSub[`project[${index}][id]`] = column.id
             tempSub[`project[${index}][name]`] = column.name
             tempSub[`project[${index}][type]`] = column.type
@@ -205,25 +253,25 @@ export default {
             tempSub[`project[${index}][project_plan]`] = column.project_plan
             tempSub[`project[${index}][project_progress]`] = column.project_progress
             tempSub[`project[${index}][project_status]`] = column.project_status
-            return tempSub
           })
 
           const params = Object.assign({}, tempSub)
 
           this.$store.dispatch('PROJECT_EDIT', params)
             .then(res => {
-              this.$confirm('文件已成功提交, 是否继续操作?', '提示', {
+              this.$confirm('文件已成功提交, 是否查看详情?', '提示', {
+                closeOnClickModal: false,
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'success'
               }).then(() => {
-                this.$router.push({ name: 'project', replace: true })
+                this.$router.push({name: 'look-project', params: {id: this.ruleForm.ip_right.id}})
               }).catch(() => {
-                this.$router.push({ name: 'search', replace: true })
+                this.$router.push({ name: 'search' })
               })
             })
-            .catch(() => {
-              this.$message.error('提交失败，请稍微再试')
+            .catch(err => {
+              console.log(err.msg)
             })
         } else {
           return false
@@ -253,8 +301,8 @@ export default {
               message: '删除成功!'
             })
           })
-          .catch(() => {
-            this.$message.error('删除失败，请稍后再试')
+          .catch(err => {
+            console.log(err.msg)
           })
       }).catch(() => {
         this.$message({
@@ -297,22 +345,59 @@ export default {
         })
     },
     // 6.根据选中的IP获取改编权类别
-    handleSuggestions(item) {
-      this.$store.dispatch('IP_RIGHT_ALL', { ip_id: item.id })
+    handleSuggestions(val) {
+      this.$store.dispatch('IP_RIGHT_ALL', { ip_id: val.id })
         .then(res => {
           const result = res.data.map(item => {
             return {
-              label: item.name,
-              value: item.id
+              label: item.sub_right_name,
+              value: item.sub_right_id,
+              ip_right_id: item.id
             }
           })
-          this.typeOptions = result
+          this.ipTypeOptions = result
         })
+    },
+    // 7.切换选择的ip_right_id
+    handleIpRightIp(val) {
+      this.ipTypeOptions.forEach(item => {
+        if (item.value === val) {
+          this.ruleForm.ip_right.id = item.ip_right_id
+        }
+      })
+    },
+    // 8.根据进度显示相应状态
+    formateShowStatus(type) {
+      let tempLabel = ''
+      this.statusOptions.forEach(item => {
+        if (type === item.value) {
+          tempLabel = item.label
+        }
+      })
+      return tempLabel
     }
   }
 }
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
-
+.project-status{
+  margin-left: 20px;
+  color: #fff;
+  font-size: 14px;
+  width: 80px;
+  height: 30px;
+  display: inline-block;
+  line-height: 30px;
+  text-align: center;
+  &.status-0{
+    background: #008000;
+  }
+  &.status-1{
+    background: #ffa801;
+  }
+  &.status-2{
+    background: #ff0000;
+  }
+}
 </style>

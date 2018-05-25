@@ -3,16 +3,16 @@
     <div class="common-wrap search-filter">
       <el-form ref="form" :model="listQuery" label-width="120px">
         <el-row :gutter="30">
-          <el-col :span="7">
+          <el-col :span="8">
             <el-form-item label="IP改编权">
               <el-select
                 v-model="listQuery.pid"
                 placeholder="请选择">
-                <el-option v-for="item in typeOptions" :label="item.label" :value="item.value" :key="item.value"></el-option>
+                <el-option v-for="item in typeTopOptions" :label="item.label" :value="item.value" :key="item.value"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="17">
+          <el-col :span="16">
             <el-form-item label-width="10px">
               <el-button type="primary" @click="handleFilter">查询</el-button>
               <el-button @click="handleEdit">新增类别</el-button>
@@ -29,18 +29,18 @@
       :visible.sync="dialogFormVisible">
       <el-form
         ref="ruleForm"
+        :rules="rules"
         label-width="110px"
         :model="ruleForm">
         <el-form-item
           label="IP改编权"
-          prop="pid"
-          :rules="{required: true, message: '请选择IP改编权', trigger: 'change'}">
+          prop="pid">
           <el-select
             :disabled="isLook"
             v-model="ruleForm.pid"
             placeholder="请选择">
             <el-option
-              v-for="item in typeOptions"
+              v-for="item in adaptationTop"
               :key="item.value"
               :label="item.label"
               :value="item.value">
@@ -49,8 +49,7 @@
         </el-form-item>
         <el-form-item
           label="改编权类别"
-          prop="name"
-          :rules="{ required: true, message: '请输入改编权类别', trigger: 'blur' }">
+          prop="name">
           <el-input v-model="ruleForm.name" auto-complete="off"></el-input>
         </el-form-item>
       </el-form>
@@ -67,7 +66,7 @@
         highlight-current-row
         border
         stripe
-        :data="adapataionData">
+        :data="adaptationData">
         <el-table-column
           fixed
           type="index"
@@ -117,10 +116,23 @@
 
 <script>
 import { mapGetters } from 'vuex'
+const defalutOptions = [
+  {label: '全部', value: '0'}
+]
 
 export default {
   data() {
+    const validateAdaptationName = (rule, value, callback) => {
+      if (!value) {
+        callback(new Error('请输入改编权类别'))
+      } else if (value.length > 20) {
+        callback(new Error('输入内容不得超过20个字符'))
+      } else {
+        callback()
+      }
+    }
     return {
+      adaptationData: null,
       dialogFormVisible: false,
       listLoading: false,
       isLook: false,
@@ -133,7 +145,14 @@ export default {
       listQuery: {
         pid: ''
       },
-      typeOptions: []
+      rules: {
+        pid: [
+          {required: true, message: '请选择IP改编权', trigger: 'change'}
+        ],
+        name: [
+          { required: true, trigger: 'blur', validator: validateAdaptationName }
+        ]
+      }
     }
   },
   created() {
@@ -141,33 +160,30 @@ export default {
   },
   computed: {
     ...mapGetters([
-      'adapataionData'
-    ])
+      'adaptationTop'
+    ]),
+    typeTopOptions() {
+      if (this.adaptationTop) {
+        return defalutOptions.concat(this.adaptationTop)
+      } else {
+        return defalutOptions
+      }
+    }
   },
   methods: {
     // 0.获取ip所有top的改编权
     fetchTopAdaptation() {
-      this.$store.dispatch('ADAPATATION_FETCH_TOP')
-        .then(res => {
-          const result = res.data.map(item => {
-            return {
-              label: item.name,
-              value: item.id
-            }
-          })
-          this.typeOptions = result
-        })
+      this.$store.dispatch('ADAPTATION_FETCH_TOP')
     },
     // 1.获取所有类别列表数据
     getList() {
       this.listLoading = true
-      this.$store.dispatch('ADAPATATION_FETCH_LIST', this.listQuery)
+      this.$store.dispatch('ADAPTATION_FETCH_LIST', this.listQuery)
         .then(res => {
-          /* this.list = res.data.map(item => {
-            this.$set(item, 'edit', false)
-            item.originalName = item.name
-            return item
-          }) */
+          this.adaptationData = res.data
+          this.listLoading = false
+        })
+        .catch(() => {
           this.listLoading = false
         })
     },
@@ -177,21 +193,25 @@ export default {
     },
     // 3.提交表单
     submitForm() {
+      const that = this
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
-          this.$store.dispatch('ADAPATATION_EDIT', this.ruleForm)
-            .then(res => {
+          this.$store.dispatch('ADAPTATION_EDIT', this.ruleForm)
+            .then(() => {
               this.dialogFormVisible = false
               this.$message({
                 type: 'success',
                 message: '操作成功!',
                 onClose: function() {
-                  location.reload()
+                  // 更新获取所有类别
+                  that.$store.dispatch('ADAPTATION_FETCH_LIST')
+                  // 再次执行搜索，刷新数据
+                  that.handleFilter()
                 }
               })
             })
-            .catch(() => {
-              this.$message.error('提交失败，请稍微再试')
+            .catch(err => {
+              console.log(err.msg)
             })
         } else {
           return false
@@ -228,16 +248,16 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$store.dispatch('ADAPATATION_DELETE', { id: row.pid })
-          .then(res => {
-            this.adapataionData.splice(index, 1)
+        this.$store.dispatch('ADAPTATION_DELETE', { id: row.id })
+          .then(() => {
+            this.adaptationData.splice(index, 1)
             this.$message({
               type: 'success',
               message: '删除成功!'
             })
           })
-          .catch(() => {
-            this.$message.error('删除失败，请稍后再试')
+          .catch(err => {
+            console.log(err.msg)
           })
       }).catch(() => {
         this.$message({

@@ -41,7 +41,7 @@ export default {
     toggleScreen() {
       if (!screenfull.enabled) {
         this.$message({
-          message: 'you browser can not work',
+          message: '浏览器版本过低，不支持该功能',
           type: 'warning'
         })
         return false

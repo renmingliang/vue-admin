@@ -2,13 +2,28 @@ import api from '@/api'
 
 const permission = {
   state: {
+    permissionLoading: false,
     configData: [],
     permissionData: [],
     permissionFilter: null
   },
 
   getters: {
+    permissionLoading: state => state.permissionLoading,
     configData: state => state.configData,
+    configOptions: state => {
+      let temp = []
+      state.configData.permission.forEach(item => {
+        item.children.forEach(child => {
+          temp.push({
+            id: child.id,
+            pid: child.pid,
+            permission_id: child.permission_id.split(',')
+          })
+        })
+      })
+      return temp
+    },
     permissionData: state => state.permissionData,
     permissionFilter: state => state.permissionFilter,
     permissionName: state => {
@@ -38,6 +53,9 @@ const permission = {
   },
 
   mutations: {
+    PERMISSION_LOADING: (state, payload) => {
+      state.permissionLoading = payload.loading
+    },
     PERMISSION_LIST: (state, payload) => {
       state.permissionData = payload.list
     },
@@ -62,13 +80,16 @@ const permission = {
     // 录入
     PERMISSION_EDIT({ commit }, params) {
       return new Promise((resolve, reject) => {
+        commit('PERMISSION_LOADING', { loading: true })
         api.PermissionEdit(params)
           .then(res => {
             console.log(res)
+            commit('PERMISSION_LOADING', { loading: false })
             resolve(res)
           })
           .catch(error => {
             console.log(error)
+            commit('PERMISSION_LOADING', { loading: false })
             reject(error)
           })
       })
@@ -145,13 +166,16 @@ const permission = {
     // 更新员工权限
     PERMISSION_USER_UPDATE({ commit }, params) {
       return new Promise((resolve, reject) => {
+        commit('PERMISSION_LOADING', { loading: true })
         api.UserUpdate(params)
           .then(res => {
             console.log(res)
+            commit('PERMISSION_LOADING', { loading: false })
             resolve(res)
           })
           .catch(error => {
             console.log(error)
+            commit('PERMISSION_LOADING', { loading: false })
             reject(error)
           })
       })
@@ -159,13 +183,16 @@ const permission = {
     // 删除对应权限员工
     PERMISSION_USER_DELETE({ commit }, params) {
       return new Promise((resolve, reject) => {
+        commit('PERMISSION_LOADING', { loading: true })
         api.UserDelete(params)
           .then(res => {
             console.log(res)
+            commit('PERMISSION_LOADING', { loading: false })
             resolve(res)
           })
           .catch(error => {
             console.log(error)
+            commit('PERMISSION_LOADING', { loading: false })
             reject(error)
           })
       })

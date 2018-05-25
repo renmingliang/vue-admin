@@ -23,6 +23,7 @@
           <el-col :span="8">
             <el-form-item label="版权开始时间：">
               <el-date-picker
+                :picker-options="startDateOpt"
                 type="date"
                 placeholder="请选择"
                 value-format="yyyy-MM-dd"
@@ -46,6 +47,7 @@
           <el-col :span="8">
             <el-form-item label="版权结束时间：">
               <el-date-picker
+                :picker-options="endDateOpt"
                 type="date"
                 placeholder="请选择"
                 value-format="yyyy-MM-dd"
@@ -85,7 +87,7 @@
             <el-form-item label-width="10px">
               <el-button type="primary" @click="handleFilter">查询</el-button>
               <el-button @click="handleExport">导出</el-button>
-              <a ref="download" style="display:none;" :href="exportUrl" target="_blank">导出</a>
+              <a ref="exportExcel" style="display:none;" :href="exportUrl" target="_blank">导出</a>
             </el-form-item>
           </el-col>
         </el-row>
@@ -118,16 +120,17 @@
           min-width="120">
           <template slot-scope="scope">
             <router-link
-              :to="{name:'look-ip', params: {id: scope.row.id}}">
+              :to="{name:'look-ip', params: {id: scope.row.id}}"
+              target="_blank">
               {{ scope.row.name }}
             </router-link>
           </template>
         </el-table-column>
         <el-table-column
-          prop="company"
           label="所属主体"
           align="center"
           width="160">
+          <template slot-scope="scope">{{ scope.row.company_name }}</template>
         </el-table-column>
         <el-table-column
           label="买入金额"
@@ -153,14 +156,9 @@
           width="120">
           <template slot-scope="scope">
             <div>
-              <el-button
-              size="mini"
-              icon="el-icon-edit">
-              <router-link
-                :to="{name:'edit-ip', params: {id: scope.row.id}}">
-                编辑
+              <router-link :to="{name:'edit-ip', params: {id: scope.row.id}}">
+                <el-button size="mini" icon="el-icon-edit">编辑</el-button>
               </router-link>
-            </el-button>
             </div>
             <div>
               <el-button
@@ -180,27 +178,17 @@
               <li class="column-item hover-show"
                 v-for="(column, index) in scope.row.rights"
                 :key="index">
-                <el-button
-                  type="text"
-                  size="mini">
-                    <router-link
-                      :to="{name:'look-project', params: {id: column.id}}">
-                      {{column.sub_right_id | formateTypeLabel}}
-                    </router-link>
-                </el-button>
+                <router-link :to="{name:'look-project', params: {id: column.id}}" target="_blank">
+                  <el-button type="text" size="mini">{{ column.sub_right_name }}</el-button>
+                </router-link>
                 <div class="float-right inline">
+                  <router-link :to="{name:'edit-project', params: {id: column.id}}">
+                    <el-button size="mini" type="primary">编辑</el-button>
+                  </router-link>
                   <el-button
-                  size="mini"
-                  type="primary">
-                    <router-link
-                      :to="{name:'edit-project', params: {id: column.id}}">
-                      编辑
-                    </router-link>
-                  </el-button>
-                  <el-button
-                  size="mini"
-                  type="danger"
-                  @click="handleDelete(scope.$index, scope.row, column.id)">删除</el-button>
+                    size="mini"
+                    type="danger"
+                    @click="handleDelete(scope.$index, scope.row, column.id)">删除</el-button>
                 </div>
               </li>
             </ul>
@@ -263,12 +251,8 @@ import { mapGetters } from 'vuex'
 import { getToken } from '@/utils/auth'
 import qs from 'qs'
 
-const tempType = [
-  {label: '网页游戏改编权', value: '1'},
-  {label: '手机游戏改编权', value: '2'},
-  {label: '动漫改编权', value: '3'},
-  {label: '电视剧改编权', value: '4'},
-  {label: '周边衍生品改编权', value: '5'}
+const defalutOptions = [
+  {label: '全部', value: '0'}
 ]
 
 export default {
@@ -276,6 +260,8 @@ export default {
   data() {
     return {
       exportUrl: 'javascript:;',
+      listData: null,
+      listTotal: null,
       listQuery: {
         page: 1,
         page_size: 10,
@@ -290,40 +276,48 @@ export default {
         price_max: ''
       },
       multipleSelection: [],
-      companyOptions: null
+      startDateOpt: {
+        disabledDate: (time) => {
+          return time.getTime() > Date.parse(this.listQuery.right_end)
+        }
+      },
+      endDateOpt: {
+        disabledDate: (time) => {
+          return time.getTime() < Date.parse(this.listQuery.right_begin)
+        }
+      }
     }
   },
   computed: {
     ...mapGetters([
       'adaptationName',
-      'listData',
-      'listTotal',
+      'companyName',
       'listLoading'
     ]),
     typeOptions() {
-      return [{label: '全部', value: '0'}].concat(tempType)
+      if (this.adaptationName) {
+        return defalutOptions.concat(this.adaptationName)
+      } else {
+        return defalutOptions
+      }
+    },
+    companyOptions() {
+      if (this.companyName) {
+        return defalutOptions.concat(this.companyName)
+      } else {
+        return defalutOptions
+      }
     }
   },
-  created() {
-    this.fetchCompany()
-  },
   methods: {
-    // 获取公司主体
-    fetchCompany() {
-      this.$store.dispatch('COMPANY_FETCH_LIST')
-        .then(res => {
-          const result = res.data.map(item => {
-            return {
-              label: item.name,
-              value: item.id
-            }
-          })
-          this.companyOptions = [{label: '全部', value: '0'}].concat(result)
-        })
-    },
     // 获取数据
     getList() {
       this.$store.dispatch('IP_FETCH_LIST', this.listQuery)
+        .then(res => {
+          const result = res.data
+          this.listData = result.data
+          this.listTotal = +result.total_count
+        })
     },
     // 搜索
     handleFilter() {
@@ -343,27 +337,23 @@ export default {
     // 导出表格
     handleExport() {
       if (this.multipleSelection.length) {
+        const tempIds = this.multipleSelection.map(item => {
+          return item.id
+        })
+        const ids = tempIds.join(',')
         const query = qs.stringify(this.listQuery)
         const token = getToken()
-        const currentView = location.href.split('#')[1]
-        this.exportUrl = location.origin + `/ip/export-lists?access-token=${token}&${query}#${currentView}`
+        // 浏览器兼容处理
+        if (location.origin) {
+          this.exportUrl = location.origin + `/ip/export-lists?access-token=${token}&${query}&ids=${ids}`
+        } else {
+          // IE
+          this.exportUrl = `/ip/export-lists?access-token=${token}&${query}&ids=${ids}`
+        }
+
         setTimeout(() => {
-          this.$refs.download.click()
+          this.$refs.exportExcel.click()
         }, 200)
-        /* this.$store.dispatch('IP_EXPORT', this.listQuery)
-          .then(res => {
-            this.$refs.multipleTable.clearSelection()
-            this.$message({
-              message: '导出成功',
-              type: 'success'
-            })
-          })
-          .catch(() => {
-            this.$message({
-              message: '导出失败，请稍后重试',
-              type: 'error'
-            })
-          }) */
       } else {
         this.$message({
           message: '请至少选择一项',
@@ -371,7 +361,7 @@ export default {
         })
       }
     },
-    // 处理单项选择
+    // 处理选择
     handleSelectionChange(val) {
       this.multipleSelection = val
     },
@@ -400,8 +390,8 @@ export default {
               message: '删除成功!'
             })
           })
-          .catch(() => {
-            this.$message.error('删除失败，请稍后再试')
+          .catch(err => {
+            console.log(err.msg)
           })
       }).catch(() => {
         this.$message({
@@ -423,16 +413,6 @@ export default {
     // 不足一月按一月
     formateDateStartEnd(val) {
       return (val || 0) + '个月'
-    },
-    // 根据改编权id显示对于文本值
-    formateTypeLabel(type) {
-      let tempLabel = ''
-      tempType.forEach(item => {
-        if (type === item.value) {
-          tempLabel = item.label
-        }
-      })
-      return tempLabel
     }
   }
 }

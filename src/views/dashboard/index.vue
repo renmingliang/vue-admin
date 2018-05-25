@@ -11,6 +11,12 @@ export default {
   data() {
     return {}
   },
+  created() {
+    // 1.获取公司主体
+    this.$store.dispatch('COMPANY_FETCH_LIST')
+    // 2.获取所有类别列表数据
+    this.$store.dispatch('ADAPTATION_FETCH_LIST')
+  },
   computed: {
   }
 }

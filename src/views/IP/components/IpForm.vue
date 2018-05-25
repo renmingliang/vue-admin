@@ -1,5 +1,10 @@
 <template>
   <div class="box-container">
+    <a ref="downloadBtn"
+      :href="downloadFile.url"
+      :download="downloadFile.name"
+      target="_blank"
+      style="display:none;"></a>
     <el-form
       v-loading="listLoading"
       :model="ruleForm"
@@ -17,10 +22,10 @@
                 <el-option v-for="item in companyOptions" :label="item.label" :value="item.value" :key="item.value"></el-option>
               </el-select>
             </el-form-item>
-            <el-form-item label="买入金额">
+            <el-form-item label="买入金额" prop="price">
               <el-input :disabled="isLook" v-model.number="ruleForm.price" clearable></el-input>
             </el-form-item>
-            <el-form-item label="特殊条件">
+            <el-form-item label="特殊条件" prop="special_conditions">
               <el-input
                 type="textarea"
                 :disabled="isLook"
@@ -29,7 +34,7 @@
                 v-model="ruleForm.special_conditions">
               </el-input>
             </el-form-item>
-            <el-form-item label="备注信息">
+            <el-form-item label="备注信息" prop="remark">
               <el-input
                 type="textarea"
                 :disabled="isLook"
@@ -47,13 +52,13 @@
               ref="upload"
               action="/"
               list-type="picture-card"
-              :key="$route.path"
               :disabled="isLook"
               :auto-upload="false"
               :file-list="listFile"
-              :before-upload="newFiles"
+              :before-upload="beforeUploadFiles"
+              :before-remove="beforeRemove"
               :on-change="handleChange"
-              :on-preview="handlePictureCardPreview"
+              :on-preview="handlePreview"
               :on-remove="handleRemove">
               <i class="el-icon-plus">
                 <span slot="tip" class="upload-tip">上传附件</span>
@@ -75,7 +80,7 @@
               label="改编权类别"
               :prop="'rights.' + index + '.sub_right_id'"
               :rules="{required: true, message: '请选择改编权类别', trigger: 'change'}">
-              <el-select :disabled="isLook" v-model="column.sub_right_id" placeholder="请选择">
+              <el-select :disabled="isLook" v-model="column.sub_right_id" @change="handleNot($event, index)" placeholder="请选择">
                 <el-option v-for="item in typeOptions" :label="item.label" :value="item.value" :key="item.value"></el-option>
               </el-select>
             </el-form-item>
@@ -101,14 +106,29 @@
             </el-form-item>
 
             <el-form-item label="版权开始时间">
-              <el-date-picker :disabled="isLook" type="date" placeholder="请选择" value-format="yyyy-MM-dd" v-model="column.right_begin"></el-date-picker>
+              <el-date-picker
+                :picker-options="{disabledDate: (time) => {return time.getTime() > Date.parse(column.right_end)}}"
+                :disabled="isLook"
+                type="date"
+                value-format="yyyy-MM-dd"
+                placeholder="请选择"
+                v-model="column.right_begin"></el-date-picker>
             </el-form-item>
 
             <el-form-item label="版权结束时间">
-              <el-date-picker :disabled="isLook" type="date" placeholder="请选择" value-format="yyyy-MM-dd" v-model="column.right_end"></el-date-picker>
+              <el-date-picker
+                :picker-options="{disabledDate: (time) => {return time.getTime() < Date.parse(column.right_begin)}}"
+                :disabled="isLook"
+                type="date"
+                value-format="yyyy-MM-dd"
+                placeholder="请选择"
+                v-model="column.right_end"></el-date-picker>
             </el-form-item>
 
-            <el-form-item label="版权合作区域">
+            <el-form-item
+              label="版权合作区域"
+              :prop="'rights.' + index + '.cooperation_area'"
+              :rules="{ trigger: 'blur',validator: validate20}">
               <el-input :disabled="isLook" v-model="column.cooperation_area" clearable></el-input>
             </el-form-item>
 
@@ -129,6 +149,7 @@
 </template>
 
 <script>
+import { validateInput } from '@/utils/validate'
 import { mapGetters } from 'vuex'
 
 const defaultForm = {
@@ -170,38 +191,79 @@ export default {
     }
   },
   data() {
+    const validateIpName = (rule, value, callback) => {
+      if (!value) {
+        callback(new Error('请输入IP名称'))
+      } else if (value.length > 20) {
+        callback(new Error('输入内容不得超过20个字符'))
+      } else {
+        callback()
+      }
+    }
+    const validate100 = (rule, value, callback) => {
+      if (validateInput(value, 100)) {
+        callback(new Error('输入内容不得超过100个字符'))
+      } else {
+        callback()
+      }
+    }
+    const validate200 = (rule, value, callback) => {
+      if (validateInput(value, 200)) {
+        callback(new Error('输入内容不得超过200个字符'))
+      } else {
+        callback()
+      }
+    }
     return {
+      downloadFile: {
+        name: '',
+        url: ''
+      },
+      listLoading: false,
       uploadForm: new FormData(),
+      listFile: [],
       activeNames: [1, 2, 3],
       dialogImageUrl: '',
       dialogVisible: false,
       ruleForm: Object.assign({}, defaultForm),
       rules: {
         name: [
-          { required: true, message: '请输入IP名称', trigger: 'blur' }
+          { required: true, trigger: 'blur', validator: validateIpName }
         ],
         company: [
           { required: true, message: '请选择IP所属主体', trigger: 'change' }
+        ],
+        special_conditions: [
+          { trigger: 'blur', validator: validate200 }
+        ],
+        remark: [
+          { trigger: 'blur', validator: validate100 }
         ]
-      },
-      typeOptions: [
-        {label: '网页游戏改编权', value: '1'},
-        {label: '手机游戏改编权', value: '2'},
-        {label: '动漫改编权', value: '3'},
-        {label: '电视剧改编权', value: '4'},
-        {label: '周边衍生品改编权', value: '5'}
-      ],
-      companyOptions: [
-        {label: '凯撒文化', value: '2'},
-        {label: '幻文', value: '3'}
-      ]
+      }
     }
   },
   computed: {
     ...mapGetters([
-      'listLoading',
-      'listFile'
-    ])
+      'adaptationName',
+      'companyName'
+    ]),
+    typeOptions() {
+      if (this.adaptationName) {
+        return this.adaptationName
+      } else {
+        return []
+      }
+    },
+    companyOptions() {
+      if (this.companyName) {
+        return this.companyName
+      } else {
+        return []
+      }
+    },
+    downloadBtn() {
+      return this.$refs.downloadBtn
+    }
   },
   created() {
     if (this.isEdit || this.isLook) {
@@ -210,25 +272,30 @@ export default {
       this.ruleForm = Object.assign({}, defaultForm)
     }
   },
+  destroyed() {
+    document.title = '凯撒文化-IP资料库'
+  },
   methods: {
-    newFiles (file) {
-      // this.uploadForm.append('files[0]', file)
-      console.log(file)
-      return false
-    },
-    handleChange(file, fileList) {
-      console.log(fileList)
-      for (let index = 0; index < fileList.length; index++) {
-        if (fileList[index].raw) {
-          this.uploadForm.append(`files[${index}]`, fileList[index].raw)
-        }
+    validate20(rule, value, callback) {
+      if (validateInput(value, 20)) {
+        callback(new Error('输入内容不得超过20个字符'))
+      } else {
+        callback()
       }
     },
     // 0.获取数据
     fetchData() {
       this.$store.dispatch('IP_FETCH_DETAIL', {id: this.id})
         .then(res => {
+          document.title = res.data.name
           this.ruleForm = res.data
+          this.listFile = res.data.attachment.map(item => {
+            const tempIndex = item.lastIndexOf('/') + 1
+            return {
+              name: item.substr(tempIndex),
+              url: item
+            }
+          })
         })
     },
     // 1.折叠面板切换操作
@@ -239,6 +306,7 @@ export default {
     submitForm() {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
+          this.listLoading = true
           // 注意这里提交表单方式是'Content-Type': 'multipart/form-data'
           this.uploadForm.append('ip[id]', this.ruleForm.id)
           this.uploadForm.append('ip[name]', this.ruleForm.name)
@@ -261,21 +329,23 @@ export default {
 
           this.$store.dispatch('IP_EDIT', this.uploadForm)
             .then(res => {
-              // 处理上传file
+              this.listLoading = false
+              // 处理文件上传file
               this.$refs.upload.submit()
 
-              this.$confirm('文件已成功提交, 是否继续操作?', '提示', {
+              this.$confirm('文件已成功提交, 是否查看详情?', '提示', {
+                closeOnClickModal: false,
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'success'
               }).then(() => {
-                this.$router.push({ name: 'ip', replace: true })
+                this.$router.push({name: 'look-ip', params: {id: String(res.data)}})
               }).catch(() => {
-                this.$router.push({ name: 'search', replace: true })
+                this.$router.push({ name: 'search' })
               })
             })
             .catch(() => {
-              this.$message.error('提交失败，请稍微再试')
+              this.listLoading = false
             })
         } else {
           return false
@@ -291,22 +361,25 @@ export default {
         return false
       }
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        closeOnClickModal: false,
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
+        this.listLoading = true
         this.$store.dispatch('IP_RIGHT_DELETE', { id })
           .then(res => {
             if (index !== -1) {
               this.ruleForm.rights.splice(index, 1)
             }
+            this.listLoading = false
             this.$message({
               type: 'success',
               message: '删除成功!'
             })
           })
           .catch(() => {
-            this.$message.error('删除失败，请稍后再试')
+            this.listLoading = false
           })
       }).catch(() => {
         this.$message({
@@ -331,7 +404,47 @@ export default {
       const tempName = this.ruleForm.rights.length + 2
       this.activeNames.push(tempName)
     },
-    // 5.删除上传文件
+    // 5.限定录入改编权类别唯一
+    handleNot(val, num) {
+      const that = this
+      this.ruleForm.rights.forEach((item, index) => {
+        if (num !== index && item.sub_right_id === val) {
+          let typeIndex = index + 1
+          this.$message({
+            message: `该项已存在改编权类别${typeIndex < 10 ? '0' + typeIndex : typeIndex}，请勿重复选择`,
+            type: 'warning',
+            onClose: function () {
+              that.ruleForm.rights[num].sub_right_id = ''
+            }
+          })
+        }
+      })
+    },
+    // 6.阻止默认上传至action地址
+    beforeUploadFiles(file) {
+      console.log(file)
+      return false
+    },
+    // 7.添加文件对象至formData
+    handleChange(file, fileList) {
+      console.log(file, fileList)
+      const isLt10M = file.size / 1024 / 1024 < 10
+      if (!isLt10M) {
+        this.$message.error('上传文件大小不能超过 10MB!')
+        fileList = fileList.splice(fileList.length - 1, 1)
+        return false
+      }
+      for (let index = 0; index < fileList.length; index++) {
+        if (fileList[index].raw) {
+          this.uploadForm.append(`files[${index}]`, fileList[index].raw)
+        }
+      }
+    },
+    // 8删除前询问
+    beforeRemove(file, fileList) {
+      return this.$confirm(`确定移除${file.name}？`)
+    },
+    // 8.确认删除上传文件
     handleRemove(file, fileList) {
       console.log(file, fileList)
       this.ruleForm.attachment = this.ruleForm.attachment.filter(item => {
@@ -342,10 +455,21 @@ export default {
         }
       })
     },
-    // 6.上传文件预览
-    handlePictureCardPreview(file) {
-      this.dialogImageUrl = file.url
-      this.dialogVisible = true
+    // 9.上传文件下载
+    handlePreview(file) {
+      const downLoadUrl = location.origin ? location.origin + file.url : file.url
+      if (file.status === 'success') {
+        this.downloadFile = {
+          name: file.name,
+          url: downLoadUrl
+        }
+        setTimeout(() => {
+          this.downloadBtn.click()
+        }, 200)
+      } else {
+        this.dialogImageUrl = file.url
+        this.dialogVisible = true
+      }
     }
   }
 }

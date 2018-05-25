@@ -1,5 +1,6 @@
 import api from '@/api'
 import { getToken, setToken, removeToken } from '@/utils/auth'
+import { storage } from '@/utils'
 
 const user = {
   state: {
@@ -27,7 +28,7 @@ const user = {
   actions: {
     // 登录
     Login({ commit }, userInfo) {
-      const username = userInfo.username.trim()
+      const username = userInfo.username
       const password = userInfo.password
       return new Promise((resolve, reject) => {
         api.login({username, password}).then(res => {
@@ -54,15 +55,27 @@ const user = {
     GetInfo({ commit, state }) {
       return new Promise((resolve, reject) => {
         api.getInfo().then(res => {
+          const user = res.data
+          commit('SET_NAME', user.username)
+          commit('SET_AVATAR', user.avatar)
+          resolve(res)
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
+
+    // 获取用户权限列表
+    GetMenu({ commit, state }) {
+      return new Promise((resolve, reject) => {
+        api.getMenu().then(res => {
           const data = {roles: res.data}
-          console.log(data)
+          console.log(res)
           if (data.roles && data.roles.length > 0) { // 验证返回的roles是否是一个非空数组
             commit('SET_ROLES', data.roles)
           } else {
-            reject(new Error('getInfo: roles must be a non-null array !'))
+            reject(new Error('getMenu: roles must be a non-null array !'))
           }
-          commit('SET_NAME', data.name)
-          commit('SET_AVATAR', data.avatar)
           resolve(res)
         }).catch(error => {
           reject(error)
@@ -77,6 +90,7 @@ const user = {
           commit('SET_TOKEN', '')
           commit('SET_ROLES', [])
           removeToken()
+          storage.clear()
           resolve()
         }).catch(error => {
           reject(error)
@@ -89,6 +103,7 @@ const user = {
       return new Promise(resolve => {
         commit('SET_TOKEN', '')
         removeToken()
+        storage.clear()
         resolve()
       })
     }

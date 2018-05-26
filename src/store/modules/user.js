@@ -1,6 +1,6 @@
 import api from '@/api'
 import { getToken, setToken, removeToken } from '@/utils/auth'
-import { storage } from '@/utils'
+import { localData } from '@/utils'
 
 const user = {
   state: {
@@ -35,6 +35,17 @@ const user = {
           const token = res.data
           setToken(token)
           commit('SET_TOKEN', token)
+          resolve(res)
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
+
+    // 修改密码
+    EditPass({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        api.editPass(params).then(res => {
           resolve(res)
         }).catch(error => {
           reject(error)
@@ -90,7 +101,7 @@ const user = {
           commit('SET_TOKEN', '')
           commit('SET_ROLES', [])
           removeToken()
-          storage.clear()
+          localData.clear()
           resolve()
         }).catch(error => {
           reject(error)
@@ -103,7 +114,7 @@ const user = {
       return new Promise(resolve => {
         commit('SET_TOKEN', '')
         removeToken()
-        storage.clear()
+        localData.clear()
         resolve()
       })
     }

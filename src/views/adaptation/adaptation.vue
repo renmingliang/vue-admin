@@ -243,17 +243,23 @@ export default {
     },
     // 5.删除子改编权
     handleDelete(index, row) {
-      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
-        confirmButtonText: '确定',
+      const that = this
+      this.$confirm('此操作将会删除该条改编权类别、及其所有IP内包含的该条改编权信息，是否确认删除？', '提示', {
+        confirmButtonText: '删除',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
         this.$store.dispatch('ADAPTATION_DELETE', { id: row.id })
           .then(() => {
-            this.adaptationData.splice(index, 1)
             this.$message({
               type: 'success',
-              message: '删除成功!'
+              message: '删除成功!',
+              onClose: function() {
+                // 更新获取所有类别
+                that.$store.dispatch('ADAPTATION_FETCH_LIST')
+                // 再次执行搜索，刷新数据
+                that.handleFilter()
+              }
             })
           })
           .catch(err => {

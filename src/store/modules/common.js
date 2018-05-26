@@ -1,12 +1,12 @@
 import api from '@/api'
-import { storage } from '@/utils'
+import { localData } from '@/utils'
 
 const KEY_NAME = 'companyName'
 
 const common = {
   state: {
     userList: null,
-    companyName: storage.get(KEY_NAME)
+    companyName: localData.get(KEY_NAME)
   },
 
   getters: {
@@ -22,7 +22,7 @@ const common = {
           value: item.id
         }
       })
-      storage.set(KEY_NAME, state.companyName)
+      localData.set(KEY_NAME, state.companyName)
     },
     USER_SSO_LIST: (state, payload) => {
       state.userList = payload.list.map(item => {

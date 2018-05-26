@@ -1,5 +1,5 @@
 import api from '@/api'
-import { storage } from '@/utils'
+import { localData } from '@/utils'
 
 const KEY_NAME = 'adaptationName'
 const KEY_TOP = 'adaptationTop'
@@ -7,8 +7,8 @@ const KEY_TOP = 'adaptationTop'
 const adaptation = {
   state: {
     adaptationData: [],
-    adaptationTop: storage.get(KEY_TOP),
-    adaptationName: storage.get(KEY_NAME)
+    adaptationTop: localData.get(KEY_TOP),
+    adaptationName: localData.get(KEY_NAME)
   },
 
   getters: {
@@ -28,7 +28,7 @@ const adaptation = {
           value: item.id
         }
       })
-      storage.set(KEY_TOP, state.adaptationTop)
+      localData.set(KEY_TOP, state.adaptationTop)
     },
     ADAPTATION_NAME: (state, payload) => {
       state.adaptationName = payload.list.map(item => {
@@ -37,7 +37,7 @@ const adaptation = {
           value: item.id
         }
       })
-      storage.set(KEY_NAME, state.adaptationName)
+      localData.set(KEY_NAME, state.adaptationName)
     }
   },
 

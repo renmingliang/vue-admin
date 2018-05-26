@@ -2,8 +2,8 @@
  * 获取表单结构数据中指定参数的值
  */
 export function getQueryString (str, name) {
-  var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i')
-  var r = str.match(reg)
+  const reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i')
+  const r = str.match(reg)
   if (r != null) return decodeURIComponent(r[2])
   return ''
 }
@@ -17,11 +17,27 @@ export function param2Obj(str) {
 }
 
 /**
+ * 深度拷贝对象-利用es6延展符
+ */
+export function deepClone(params) {
+  if (Array.isArray(params)) {
+    let [ ...arr ] = params
+    return arr
+  } else {
+    return JSON.parse(JSON.stringify(params))
+  }
+}
+
+/**
  * localStorage
  */
-export const storage = {
+export const localData = {
   set: function (key, val) {
-    localStorage.setItem(key, JSON.stringify(val))
+    if (typeof val === 'string') {
+      localStorage.setItem(key, val)
+    } else {
+      localStorage.setItem(key, JSON.stringify(val))
+    }
   },
   get: function (key) {
     const res = localStorage.getItem(key)

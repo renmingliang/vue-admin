@@ -13,7 +13,7 @@
           <el-col :span="7">
             <el-form-item label="员工姓名">
               <el-autocomplete
-                placeholder="请输入内容"
+                placeholder="支持模糊搜索"
                 popper-class="custom-autocomplete"
                 v-model="filterQuery.username"
                 :trigger-on-focus="false"
@@ -48,7 +48,7 @@
           prop="username"
           :rules="{ required: true, message: '请输入员工姓名', trigger: 'blur' }">
           <el-autocomplete
-            placeholder="请输入员工姓名"
+            placeholder="支持模糊搜索"
             popper-class="custom-autocomplete"
             v-model="ruleForm.username"
             :trigger-on-focus="false"

@@ -5,6 +5,9 @@ export default {
   login: (data) => {
     return request.post('/site/get-token', data)
   },
+  // 修改密码
+  editPass: (data) => {
+  },
   // 登出
   logout: () => {
     return request.post('/site/logout')

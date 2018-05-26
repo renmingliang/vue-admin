@@ -36,7 +36,12 @@
         <el-row :gutter="30">
           <el-col :span="8">
             <el-form-item label="IP名称：">
-              <el-input v-model="listQuery.name" clearable></el-input>
+              <el-autocomplete
+                placeholder="支持模糊搜索IP名称"
+                v-model="listQuery.name"
+                :fetch-suggestions="querySearch"
+                :trigger-on-focus="false"
+              ></el-autocomplete>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -185,10 +190,10 @@
                   <router-link :to="{name:'edit-project', params: {id: column.id}}">
                     <el-button size="mini" type="primary">编辑</el-button>
                   </router-link>
-                  <el-button
+                  <!-- <el-button
                     size="mini"
                     type="danger"
-                    @click="handleDelete(scope.$index, scope.row, column.id)">删除</el-button>
+                    @click="handleDelete(scope.$index, scope.row, column.id)">删除</el-button> -->
                 </div>
               </li>
             </ul>
@@ -309,8 +314,12 @@ export default {
       }
     }
   },
+  created() {
+    // 默认执行一次查询
+    this.getList()
+  },
   methods: {
-    // 获取数据
+    // 0.获取数据
     getList() {
       this.$store.dispatch('IP_FETCH_LIST', this.listQuery)
         .then(res => {
@@ -319,22 +328,22 @@ export default {
           this.listTotal = +result.total_count
         })
     },
-    // 搜索
+    // 1.搜索
     handleFilter() {
       this.listQuery.page = 1
       this.getList()
     },
-    // 单页最大显示数据条数
+    // 2.单页最大显示数据条数
     handleSizeChange(val) {
       this.listQuery.page_size = val
       this.getList()
     },
-    // 处理分页
+    // 3.处理分页
     handleCurrentChange(val) {
       this.listQuery.page = val
       this.getList()
     },
-    // 导出表格
+    // 4.导出表格
     handleExport() {
       if (this.multipleSelection.length) {
         const tempIds = this.multipleSelection.map(item => {
@@ -361,11 +370,11 @@ export default {
         })
       }
     },
-    // 处理选择
+    // 5.处理选择
     handleSelectionChange(val) {
       this.multipleSelection = val
     },
-    // 删除
+    // 6.删除
     handleDelete(index, row, paramsId) {
       let delData, delType, params
       if (paramsId) {
@@ -399,10 +408,24 @@ export default {
           message: '已取消删除'
         })
       })
+    },
+    // 7.模糊搜索IP名称
+    querySearch(name, cb) {
+      this.$store.dispatch('IP_SEARCH_NAME', { name })
+        .then(res => {
+          const result = res.data.map(item => {
+            return {
+              id: item.id,
+              value: item.name
+            }
+          })
+          // 调用callback返回建议列表的数据
+          cb(result)
+        })
     }
   },
   filters: {
-    // 千位分割数字
+    // 8.千位分割数字
     formatePrice(num) {
       if (num) {
         return String(num).replace(/(\d)(?=(\d{3})+$)/g, '$1,')
@@ -410,7 +433,7 @@ export default {
         return ''
       }
     },
-    // 不足一月按一月
+    // 9.不足一月按一月
     formateDateStartEnd(val) {
       return (val || 0) + '个月'
     }

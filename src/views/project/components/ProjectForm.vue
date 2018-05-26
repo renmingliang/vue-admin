@@ -116,6 +116,7 @@
 </template>
 
 <script>
+import { deepClone } from '@/utils'
 import { validateInput } from '@/utils/validate'
 import { mapGetters } from 'vuex'
 
@@ -195,7 +196,8 @@ export default {
     if (this.isEdit || this.isLook) {
       this.fetchData()
     } else {
-      this.ruleForm = Object.assign({}, defaultForm)
+      // 利用深拷贝对象，重新清空赋值ruleForm表单，不然会记录v-model的值
+      this.ruleForm = deepClone(defaultForm)
     }
   },
   methods: {

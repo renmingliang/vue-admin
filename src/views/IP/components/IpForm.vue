@@ -226,6 +226,7 @@ export default {
       listLoading: false,
       uploadForm: new FormData(),
       listFile: [],
+      uploadFile: [],
       activeNames: [1, 2, 3],
       isImg: true,
       dialogFileUrl: '',
@@ -317,6 +318,15 @@ export default {
         if (valid) {
           this.listLoading = true
           // 注意这里提交表单方式是'Content-Type': 'multipart/form-data'
+          // 添加处理上传的文件数据
+          this.uploadFile.forEach((item, index) => {
+            // 只有未上传的文件才添加，已上传成功不添加
+            if (item.raw) {
+              this.uploadForm.append(`files[${index}]`, item.raw)
+            }
+          })
+
+          // 处理输入表单数据
           this.uploadForm.append('ip[id]', this.ruleForm.id)
           this.uploadForm.append('ip[name]', this.ruleForm.name)
           this.uploadForm.append('ip[company]', this.ruleForm.company)
@@ -339,7 +349,7 @@ export default {
           this.$store.dispatch('IP_EDIT', this.uploadForm)
             .then(res => {
               this.listLoading = false
-              // 处理文件上传file
+              // 提交文件上传 -- 为了获取element的upload默认行为
               this.$refs.upload.submit()
 
               this.$confirm('文件已成功提交, 是否查看详情?', '提示', {
@@ -460,25 +470,13 @@ export default {
         let imgs = document.querySelectorAll('.el-upload-list__item-thumbnail')
         imgs[fileList.length - 1].src = this.setTempTypeImg(typeName, imgs[fileList.length - 1].src)
       })
-      // 存储上传文件数据
-      for (let index = 0; index < fileList.length; index++) {
-        if (fileList[index].raw && !this.uploadForm.get(`files[${index}]`)) {
-          this.uploadForm.append(`files[${index}]`, fileList[index].raw)
-        }
-      }
+      // 更新上传文件数据列表
+      this.uploadFile = fileList
     },
     // 8.删除前询问
     beforeRemove(file, fileList) {
-      const isDel = this.$confirm(`确定移除${file.name}？`)
-      // 删除对应的字段文件数据
-      if (isDel) {
-        for (let index = 0; index < fileList.length; index++) {
-          if (file.name === fileList[index].name) {
-            this.uploadForm.delete(`files[${index}]`)
-          }
-        }
-      }
-      return isDel
+      console.log(file, fileList)
+      return this.$confirm(`确定移除${file.name}？`)
     },
     // 8.确认删除上传文件
     handleRemove(file, fileList) {
@@ -494,12 +492,14 @@ export default {
       })
       // 删除与其对应的文件，传递后台
       this.ruleForm.attachment = this.ruleForm.attachment.filter(item => {
-        if (item === file.url) {
+        if (item === file.url || item === file.downloadUrl) {
           return false
         } else {
           return true
         }
       })
+      // 更新上传文件数据列表
+      this.uploadFile = fileList
     },
     // 9.上传文件下载
     handlePreview(file) {

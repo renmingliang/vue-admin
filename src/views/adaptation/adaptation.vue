@@ -157,6 +157,7 @@ export default {
   },
   created() {
     this.fetchTopAdaptation()
+    this.getList()
   },
   computed: {
     ...mapGetters([

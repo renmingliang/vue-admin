@@ -46,12 +46,13 @@
           </div>
         </el-collapse-item>
 
-        <el-collapse-item title="附件信息" :name="2">
+        <el-collapse-item title="附件信息（仅支持：JPG/PNG/PDF/Word/PPT文件格式）" :name="2">
           <div class="common-wrap">
             <el-upload
               ref="upload"
               action="/"
               list-type="picture-card"
+              :accept="acceptFileType"
               :disabled="isLook"
               :auto-upload="false"
               :file-list="listFile"
@@ -61,11 +62,12 @@
               :on-preview="handlePreview"
               :on-remove="handleRemove">
               <i class="el-icon-plus">
-                <span slot="tip" class="upload-tip">上传附件</span>
+                <span slot="tip" class="upload-tip">上传附件 (文件大小不得超过10M)</span>
               </i>
             </el-upload>
             <el-dialog :visible.sync="dialogVisible">
-              <img width="100%" :src="dialogImageUrl">
+              <img v-if="isImg" width="100%" :src="dialogFileUrl">
+              <iframe v-else width="100%" :src="dialogFileUrl" style="min-height: 500px;" frameborder="0"></iframe>
             </el-dialog>
           </div>
         </el-collapse-item>
@@ -220,11 +222,13 @@ export default {
         name: '',
         url: ''
       },
+      acceptFileType: '.png,.jpg,.jpeg,.pdf,.doc,.docx,.ppt,.pptx',
       listLoading: false,
       uploadForm: new FormData(),
       listFile: [],
       activeNames: [1, 2, 3],
-      dialogImageUrl: '',
+      isImg: true,
+      dialogFileUrl: '',
       dialogVisible: false,
       ruleForm: Object.assign({}, defaultForm),
       rules: {
@@ -293,9 +297,12 @@ export default {
           this.ruleForm = res.data
           this.listFile = res.data.attachment.map(item => {
             const tempIndex = item.lastIndexOf('/') + 1
+            const typeIndex = item.lastIndexOf('.')
+            const typeName = item.substr(typeIndex)
             return {
               name: item.substr(tempIndex),
-              url: item
+              url: this.setTempTypeImg(typeName, item),
+              downloadUrl: item
             }
           })
         })
@@ -356,33 +363,36 @@ export default {
     },
     // 3.动态删除子项
     removeForm(item) {
-      const id = item.id
-      const index = this.ruleForm.rights.indexOf(item)
-      if (!id && index !== -1) {
-        this.ruleForm.rights.splice(index, 1)
-        return false
-      }
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
         closeOnClickModal: false,
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.listLoading = true
-        this.$store.dispatch('IP_RIGHT_DELETE', { id })
-          .then(res => {
-            if (index !== -1) {
-              this.ruleForm.rights.splice(index, 1)
-            }
-            this.listLoading = false
-            this.$message({
-              type: 'success',
-              message: '删除成功!'
+        const id = item.id
+        const index = this.ruleForm.rights.indexOf(item)
+        // 未录入提交到后台的情况下删除，不发生请求
+        if (!id && index !== -1) {
+          this.ruleForm.rights.splice(index, 1)
+          return false
+        } else {
+          // 已有id情况，发送删除请求
+          this.listLoading = true
+          this.$store.dispatch('IP_RIGHT_DELETE', { id })
+            .then(res => {
+              if (index !== -1) {
+                this.ruleForm.rights.splice(index, 1)
+              }
+              this.listLoading = false
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              })
             })
-          })
-          .catch(() => {
-            this.listLoading = false
-          })
+            .catch(() => {
+              this.listLoading = false
+            })
+        }
       }).catch(() => {
         this.$message({
           type: 'info',
@@ -430,25 +440,59 @@ export default {
     // 7.添加文件对象至formData
     handleChange(file, fileList) {
       console.log(file, fileList)
+      // 限定上传文件大小与类型
       const isLt10M = file.size / 1024 / 1024 < 10
+      const typeIndex = file.name.lastIndexOf('.')
+      const typeName = file.name.substr(typeIndex)
+      const isTypeOk = this.acceptFileType.indexOf(typeName) !== -1
+      if (!isTypeOk) {
+        this.$message.error(`上传文件类型错误，只接受以下类型${this.acceptFileType}`)
+        fileList = fileList.splice(fileList.length - 1, 1)
+        return false
+      }
       if (!isLt10M) {
         this.$message.error('上传文件大小不能超过 10MB!')
         fileList = fileList.splice(fileList.length - 1, 1)
         return false
       }
+      // 处理非文件类型的预览图
+      this.$nextTick(() => {
+        let imgs = document.querySelectorAll('.el-upload-list__item-thumbnail')
+        imgs[fileList.length - 1].src = this.setTempTypeImg(typeName, imgs[fileList.length - 1].src)
+      })
+      // 存储上传文件数据
       for (let index = 0; index < fileList.length; index++) {
-        if (fileList[index].raw) {
+        if (fileList[index].raw && !this.uploadForm.get(`files[${index}]`)) {
           this.uploadForm.append(`files[${index}]`, fileList[index].raw)
         }
       }
     },
-    // 8删除前询问
+    // 8.删除前询问
     beforeRemove(file, fileList) {
-      return this.$confirm(`确定移除${file.name}？`)
+      const isDel = this.$confirm(`确定移除${file.name}？`)
+      // 删除对应的字段文件数据
+      if (isDel) {
+        for (let index = 0; index < fileList.length; index++) {
+          if (file.name === fileList[index].name) {
+            this.uploadForm.delete(`files[${index}]`)
+          }
+        }
+      }
+      return isDel
     },
     // 8.确认删除上传文件
     handleRemove(file, fileList) {
       console.log(file, fileList)
+      // 处理非图片文件类型的预览图
+      this.$nextTick(() => {
+        let imgs = document.querySelectorAll('.el-upload-list__item-thumbnail')
+        for (let index = 0; index < fileList.length; index++) {
+          const typeIndex = fileList[index].name.lastIndexOf('.')
+          const typeName = fileList[index].name.substr(typeIndex)
+          imgs[index].src = this.setTempTypeImg(typeName, imgs[index].src)
+        }
+      })
+      // 删除与其对应的文件，传递后台
       this.ruleForm.attachment = this.ruleForm.attachment.filter(item => {
         if (item === file.url) {
           return false
@@ -459,8 +503,9 @@ export default {
     },
     // 9.上传文件下载
     handlePreview(file) {
-      const downLoadUrl = location.origin ? location.origin + file.url : file.url
+      console.log(file)
       if (file.status === 'success') {
+        const downLoadUrl = location.origin ? location.origin + file.downloadUrl : file.downloadUrl
         this.downloadFile = {
           name: file.name,
           url: downLoadUrl
@@ -469,8 +514,24 @@ export default {
           this.downloadBtn.click()
         }, 200)
       } else {
-        this.dialogImageUrl = file.url
-        this.dialogVisible = true
+        this.isImg = file.raw.type.indexOf('image') !== -1
+        const isPDF = file.raw.type === 'application/pdf'
+        this.dialogFileUrl = file.url
+        if (this.isImg || isPDF) {
+          this.dialogVisible = true
+        }
+      }
+    },
+    // 10.处理绑定非图片类型的预览图
+    setTempTypeImg(typeName, defaultSrc) {
+      if (typeName === '.pdf') {
+        return require('../../../assets/images/PDF.png')
+      } else if (typeName === '.ppt' || typeName === '.pptx') {
+        return require('../../../assets/images/ppt.png')
+      } else if (typeName === '.doc' || typeName === '.docx') {
+        return require('../../../assets/images/Word.png')
+      } else {
+        return defaultSrc
       }
     }
   }
@@ -493,9 +554,8 @@ export default {
 .box-container{
   .upload-tip{
     position: absolute;
-    left: 50%;
+    left: 0;
     top: 100px;
-    margin-left: -28px;
     font-size: 14px;
   }
 }

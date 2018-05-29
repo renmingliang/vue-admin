@@ -5,7 +5,7 @@
         <el-row :gutter="30">
           <el-col :span="8">
             <el-form-item label="IP ID：">
-              <el-input v-model="listQuery.id" clearable></el-input>
+              <el-input v-model="listQuery.id" placeholder="IP ID" clearable></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -37,7 +37,7 @@
           <el-col :span="8">
             <el-form-item label="IP名称：">
               <el-autocomplete
-                placeholder="支持模糊搜索IP名称"
+                placeholder="支持模糊搜索"
                 v-model="listQuery.name"
                 :fetch-suggestions="querySearch"
                 :trigger-on-focus="false"
@@ -46,7 +46,7 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="备注信息：">
-              <el-input v-model="listQuery.remark" clearable></el-input>
+              <el-input v-model="listQuery.remark" placeholder="备注信息" clearable></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -76,14 +76,15 @@
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="买入金额：">
+            <el-form-item
+              label="买入金额：">
               <el-row :gutter="0">
                 <el-col :span="11">
-                  <el-input v-model.number="listQuery.price_min" clearable></el-input>
+                  <el-input v-model.number="listQuery.price_min" placeholder="最小金额" clearable></el-input>
                 </el-col>
                 <el-col class="line" :span="2">-</el-col>
                 <el-col :span="11">
-                  <el-input v-model.number="listQuery.price_max" clearable></el-input>
+                  <el-input v-model.number="listQuery.price_max" placeholder="最大金额" clearable></el-input>
                 </el-col>
               </el-row>
             </el-form-item>
@@ -92,7 +93,7 @@
             <el-form-item label-width="10px">
               <el-button type="primary" @click="handleFilter">查询</el-button>
               <el-button @click="handleExport">导出</el-button>
-              <a ref="exportExcel" style="display:none;" :href="exportUrl" target="_blank">导出</a>
+              <a ref="exportExcel" style="display:none;" :href="exportUrl" target="_blank">导出链接</a>
             </el-form-item>
           </el-col>
         </el-row>
@@ -297,6 +298,7 @@ export default {
     ...mapGetters([
       'adaptationName',
       'companyName',
+      'addControl',
       'listLoading'
     ]),
     typeOptions() {
@@ -330,6 +332,10 @@ export default {
     },
     // 1.搜索
     handleFilter() {
+      if (this.listQuery.price_min > this.listQuery.price_max) {
+        this.$message.error('买入金额中，最小金额不应大于最大金额')
+        return false
+      }
       this.listQuery.page = 1
       this.getList()
     },
@@ -345,6 +351,19 @@ export default {
     },
     // 4.导出表格
     handleExport() {
+      // 导出权限判断
+      const hasExport = this.addControl.some(item => {
+        return item.route === 'ip/export-lists'
+      })
+      if (!hasExport) {
+        this.$message({
+          message: '您没有权限进行此操作！如有需要，请联系管理员',
+          type: 'warning'
+        })
+        return false
+      }
+
+      // 至少选择导出一项
       if (this.multipleSelection.length) {
         const tempIds = this.multipleSelection.map(item => {
           return item.id

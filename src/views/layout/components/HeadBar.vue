@@ -1,15 +1,17 @@
 <template>
   <header class="head-container">
-    <div class="admin-name">
+    <div class="admin-logo">
       <router-link to="/">
-        <img src="../../../assets/images/logo.png">
-        <h1>IP资料库管理后台</h1>
+        <img src="../../../assets/images/logo.png" title="凯撒文化">
       </router-link>
+    </div>
+    <div class="admin-name">
+      <h1>IP资料库管理后台</h1>
     </div>
     <div class="admin-control">
       <div class="avator-wrap">
         <img :src="userAvator">
-        <span class="username">{{name}}</span>
+        <span class="username">{{username}}</span>
       </div>
       <div class="control-wrap">
         <el-tooltip effect="dark" content="全屏" placement="bottom">
@@ -115,6 +117,9 @@ export default {
     ]),
     userAvator() {
       return this.avatar ? this.avatar : require('../../../assets/images/icon-ip-user.png')
+    },
+    username() {
+      return this.name ? this.name : 'kaiser'
     }
   },
   created() {
@@ -133,19 +138,11 @@ export default {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
           const parmas = {
-            username: that.name,
-            origin_password: that.ruleForm.origin_password,
-            new_password: that.ruleForm.new_password
+            pwd: that.ruleForm.new_password
           }
           console.log(parmas)
-          setTimeout(() => {
-            this.dialogFormVisible = false
-            this.$message({
-              type: 'info',
-              message: 'Sorry！该接口处于调试中'
-            })
-          }, 500)
-          /* this.$store.dispatch('EditPass', parmas)
+
+          this.$store.dispatch('EditPass', parmas)
             .then(() => {
               this.dialogFormVisible = false
               this.$message({
@@ -159,7 +156,7 @@ export default {
             })
             .catch(err => {
               console.log(err.msg)
-            }) */
+            })
         } else {
           return false
         }
@@ -188,17 +185,19 @@ export default {
   box-sizing: border-box;
   flex-shrink: 0;
   // z-index: 10;
+  text-align: center;
   @include clearfix;
-  .admin-name{
+  .admin-logo{
     float: left;
     img{
       width: 100px;
       vertical-align: middle;
     }
+  }
+  .admin-name{
+    display: inline-block;
     h1{
-      float: right;
       font-size: 18px;
-      margin-left: 20px;
     }
   }
   .admin-control{

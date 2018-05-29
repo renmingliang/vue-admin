@@ -1,5 +1,7 @@
 import { asyncRouterMap, constantRouterMap } from '@/router'
+import { localData } from '@/utils'
 
+const KEY_NAME = 'asynBtn'
 /**
  * 通过meta.roles判断是否与当前用户权限匹配
  * @param roles
@@ -32,32 +34,54 @@ function filterAsyncRouter(asyncRouterMap, roles) {
 }
 
 /**
- * 递归过滤权限，返回控制用户角色权限数组
+ * 递归过滤视图，返回控制用户角色视图页面权限数组
  * @param roles
  */
-let reslut = []
-function handleRoles(roles) {
+let asynMenu = []
+function handleMenu(roles) {
   roles.forEach(item => {
     if (item.code) {
       if (item.children && item.children.length) {
-        handleRoles(item.children)
+        handleMenu(item.children)
       }
-      reslut.push(item.code)
+      asynMenu.push(item.code)
     }
   })
-  return reslut
+  return asynMenu
+}
+
+/**
+ * 递归过滤控制按钮，返回控制用户角色按钮权限数组
+ * @param roles
+ */
+let asynBtn = []
+function handleBtn(roles) {
+  roles.forEach(item => {
+    if (item.code) {
+      if (item.permissions && item.permissions.length) {
+        asynBtn = asynBtn.concat(item.permissions)
+      } else if (item.children && item.children.length) {
+        handleBtn(item.children)
+      }
+    }
+  })
+  return asynBtn
 }
 
 const menu = {
   state: {
     routers: constantRouterMap,
     addRouters: [],
-    control: []
+    addControl: localData.get(KEY_NAME)
   },
   mutations: {
     SET_ROUTERS: (state, routers) => {
       state.addRouters = routers
       state.routers = constantRouterMap.concat(routers)
+    },
+    SET_CONTROL: (state, btn) => {
+      state.addControl = btn
+      localData.set(KEY_NAME, state.addControl)
     }
   },
   actions: {
@@ -65,8 +89,11 @@ const menu = {
       return new Promise(resolve => {
         const { roles } = data
         let accessedRouters
-        const tempRoles = handleRoles(roles)
-        accessedRouters = filterAsyncRouter(asyncRouterMap, tempRoles)
+        const tempBtn = handleBtn(roles)
+        const tempMenu = handleMenu(roles)
+        accessedRouters = filterAsyncRouter(asyncRouterMap, tempMenu)
+        console.log(tempBtn)
+        commit('SET_CONTROL', tempBtn)
         console.log(accessedRouters)
         commit('SET_ROUTERS', accessedRouters)
         resolve()

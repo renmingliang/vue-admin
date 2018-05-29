@@ -91,7 +91,7 @@
         highlight-current-row
         border
         stripe
-        :data="permissionFilter">
+        :data="computedPermission">
         <el-table-column
           fixed
           type="index"
@@ -165,6 +165,7 @@ export default {
   data() {
     return {
       timeout: null,
+      permissAll: null,
       dialogFormVisible: false,
       listLoading: false,
       filterQuery: {
@@ -191,6 +192,9 @@ export default {
       } else {
         return defalutOptions
       }
+    },
+    computedPermission() {
+      return this.permissionFilter || this.permissAll
     }
   },
   created() {
@@ -201,6 +205,9 @@ export default {
     // 获取所有权限名称
     fetchPermission() {
       this.$store.dispatch('PERMISSION_FETCH_LIST')
+        .then(res => {
+          this.permissAll = res.data
+        })
     },
     // 获取所有SSO用户
     fetchSsoUser() {

@@ -13,15 +13,17 @@ const permission = {
     configData: state => state.configData,
     configOptions: state => {
       let temp = []
-      state.configData.permission.forEach(item => {
-        item.children.forEach(child => {
-          temp.push({
-            id: child.id,
-            pid: child.pid,
-            permission_id: child.permission_id.split(',')
+      if (state.configData.permission) {
+        state.configData.permission.forEach(item => {
+          item.children.forEach(child => {
+            temp.push({
+              id: child.id,
+              pid: child.pid,
+              permission_id: child.permission_id.split(',')
+            })
           })
         })
-      })
+      }
       return temp
     },
     permissionData: state => state.permissionData,

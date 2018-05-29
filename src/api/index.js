@@ -5,9 +5,6 @@ export default {
   login: (data) => {
     return request.post('/site/get-token', data)
   },
-  // 修改密码
-  editPass: (data) => {
-  },
   // 登出
   logout: () => {
     return request.post('/site/logout')
@@ -15,6 +12,10 @@ export default {
   // 用户信息
   getInfo: () => {
     return request.post('/user/info')
+  },
+  // 修改密码
+  editPass: (data) => {
+    return request.post('/user/change-pwd', data)
   },
   // 权限菜单
   getMenu: () => {

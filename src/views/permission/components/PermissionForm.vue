@@ -88,8 +88,7 @@
               <el-checkbox-group
                 :disabled="isLook"
                 v-model="ruleForm.permission">
-                <ul>
-                  <li v-for="(item, index) in configData.permission" :key="index">
+                  <template v-for="item in configData.permission">
                     <el-card
                       class="custom-group"
                       v-for="child in item.children"
@@ -104,8 +103,7 @@
                           <el-checkbox :label="permission.id">{{permission.desc}} - {{permission.id}}</el-checkbox>
                         </div>
                     </el-card>
-                  </li>
-                </ul>
+                  </template>
               </el-checkbox-group>
             </el-form-item>
           </div>

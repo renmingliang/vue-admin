@@ -122,6 +122,9 @@ export default {
       'logTotal'
     ]) */
   },
+  created() {
+    this.getList()
+  },
   methods: {
     // 获取数据
     getList() {

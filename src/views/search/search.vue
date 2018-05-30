@@ -100,7 +100,7 @@
       </el-form>
     </div>
 
-    <div class="common-wrap search-result">
+    <div class="common-wrap search-result" v-cloak>
       <el-table
         ref="multipleTable"
         v-loading="listLoading"
@@ -187,7 +187,7 @@
                 <router-link :to="{name:'look-project', params: {id: column.id}}" target="_blank">
                   <el-button type="text" size="mini">{{ column.sub_right_name }}</el-button>
                 </router-link>
-                <div class="float-right inline">
+                <div v-if="column.p_count > 0" class="float-right inline">
                   <router-link :to="{name:'edit-project', params: {id: column.id}}">
                     <el-button size="mini" type="primary">编辑</el-button>
                   </router-link>

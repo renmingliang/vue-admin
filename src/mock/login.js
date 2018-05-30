@@ -6,34 +6,41 @@ const userMap = {
       {
         code: 'manage',
         type: 'menu',
-        title: 'IP管理',
+        title: '问卷管理',
         children: [
           {
-            code: 'search',
+            code: 'question-create',
             type: 'menu',
-            title: '信息查询',
+            title: '创建问卷',
             permission: [
               {
-                code: 'edit-project',
+                code: 'edit-question',
                 type: 'button',
                 title: '编辑'
               },
               {
-                code: 'delete-project',
+                code: 'delete-question',
                 type: 'button',
                 title: '删除'
               }
             ]
           },
           {
-            code: 'ip',
+            code: 'question-list',
             type: 'menu',
-            title: 'IP信息录入'
-          },
+            title: '问卷列表'
+          }
+        ]
+      },
+      {
+        code: 'award',
+        type: 'menu',
+        title: '奖励发放',
+        children: [
           {
-            code: 'project',
+            code: 'award-record',
             type: 'menu',
-            title: '项目信息录入'
+            title: '发放记录'
           }
         ]
       },
@@ -43,26 +50,14 @@ const userMap = {
         title: '系统设置',
         children: [
           {
-            code: 'adaptation',
+            code: 'project',
             type: 'menu',
-            title: '改编权设置'
+            title: '项目设置'
           },
           {
             code: 'permission',
             type: 'menu',
             title: '权限设置'
-          }
-        ]
-      },
-      {
-        code: 'action',
-        type: 'menu',
-        title: '操作日志',
-        children: [
-          {
-            code: 'log',
-            type: 'menu',
-            title: '操作日志'
           }
         ]
       }
@@ -70,46 +65,48 @@ const userMap = {
     token: 'admin',
     introduction: '我是超级管理员',
     avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-    name: 'Super Admin'
+    username: 'Super Admin'
   },
   test: {
     roles: [
       {
         code: 'manage',
         type: 'menu',
-        title: 'IP管理',
+        title: '问卷管理',
         children: [
           {
-            code: 'search',
+            code: 'question-create',
             type: 'menu',
-            title: '信息查询'
+            title: '创建问卷',
+            permission: [
+              {
+                code: 'edit-question',
+                type: 'button',
+                title: '编辑'
+              },
+              {
+                code: 'delete-question',
+                type: 'button',
+                title: '删除'
+              }
+            ]
           },
           {
-            code: 'ip',
+            code: 'question-list',
             type: 'menu',
-            title: 'IP信息录入'
-          },
-          {
-            code: 'project',
-            type: 'menu',
-            title: '项目信息录入'
+            title: '问卷列表'
           }
         ]
       },
       {
-        code: 'setting',
+        code: 'award',
         type: 'menu',
-        title: '系统设置',
+        title: '奖励发放',
         children: [
           {
-            code: 'adaptation',
+            code: 'award-record',
             type: 'menu',
-            title: '改编权设置'
-          },
-          {
-            code: 'permission',
-            type: 'menu',
-            title: '权限设置'
+            title: '发放记录'
           }
         ]
       }
@@ -117,7 +114,7 @@ const userMap = {
     token: 'test',
     introduction: '我是编辑',
     avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-    name: 'Normal test'
+    username: 'Normal test'
   }
 }
 
@@ -144,6 +141,22 @@ export default {
       return {
         code: 10000,
         msg: '拉取用户信息成功',
+        data: userMap[token]
+      }
+    } else {
+      return {
+        code: 10001,
+        msg: '该用户没有权限',
+        data: []
+      }
+    }
+  },
+  getUserPermission: config => {
+    const token = 'admin'
+    if (token) {
+      return {
+        code: 10000,
+        msg: '拉取用户权限操作',
         data: userMap[token].roles
       }
     } else {

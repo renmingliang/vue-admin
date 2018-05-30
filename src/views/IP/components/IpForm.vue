@@ -449,7 +449,7 @@ export default {
     },
     // 7.添加文件对象至formData
     handleChange(file, fileList) {
-      console.log(file, fileList)
+      // console.log(file, fileList)
       // 限定上传文件大小与类型
       const isLt10M = file.size / 1024 / 1024 < 10
       const typeIndex = file.name.lastIndexOf('.')
@@ -475,12 +475,12 @@ export default {
     },
     // 8.删除前询问
     beforeRemove(file, fileList) {
-      console.log(file, fileList)
+      // console.log(file, fileList)
       return this.$confirm(`确定移除${file.name}？`)
     },
     // 8.确认删除上传文件
     handleRemove(file, fileList) {
-      console.log(file, fileList)
+      // console.log(file, fileList)
       // 处理非图片文件类型的预览图
       this.$nextTick(() => {
         let imgs = document.querySelectorAll('.el-upload-list__item-thumbnail')

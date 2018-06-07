@@ -4,7 +4,7 @@
       <el-form ref="form" :model="listQuery" label-width="120px">
         <el-row :gutter="30">
           <el-col :span="7">
-            <el-form-item label="操作人账户">
+            <el-form-item label="操作人账号">
               <el-input v-model="listQuery.uid" clearable></el-input>
             </el-form-item>
           </el-col>
@@ -53,20 +53,20 @@
         </el-table-column>
         <el-table-column
           prop="uid"
-          label="操作人账户"
+          label="操作人账号"
           align="center"
           width="200">
         </el-table-column>
         <el-table-column
           label="操作内容"
           align="center"
-          min-width="200">
-          <template slot-scope="scope">{{ scope.row.content }}</template>
+          min-width="100">
+          <template slot-scope="scope">{{ scope.row.ipr_content }}</template>
         </el-table-column>
         <el-table-column
           label="操作时间"
           align="center"
-          width="300">
+          width="280">
             <template slot-scope="scope">{{ scope.row.created_at }}</template>
         </el-table-column>
 

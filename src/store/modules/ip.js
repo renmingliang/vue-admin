@@ -25,10 +25,27 @@ const ip = {
 
   actions: {
     // 录入
-    IP_EDIT({ commit }, params) {
+    IP_ADD({ commit }, params) {
       return new Promise((resolve, reject) => {
         commit('LIST_LOADING', { loading: true })
-        api.IPEdit(params)
+        api.IPAdd(params)
+          .then(res => {
+            console.log(res)
+            commit('LIST_LOADING', { loading: false })
+            resolve(res)
+          })
+          .catch(error => {
+            commit('LIST_LOADING', { loading: false })
+            console.log(error)
+            reject(error)
+          })
+      })
+    },
+    // 编辑
+    IP_UPDATE({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        commit('LIST_LOADING', { loading: true })
+        api.IPUpdate(params)
           .then(res => {
             console.log(res)
             commit('LIST_LOADING', { loading: false })

@@ -15,7 +15,7 @@
           <el-col :span="16">
             <el-form-item label-width="10px">
               <el-button type="primary" @click="handleFilter">查询</el-button>
-              <el-button @click="handleEdit">新增类别</el-button>
+              <el-button v-if="$_has('adaptation-right/sub-add')" @click="handleEdit">新增类别</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -98,10 +98,12 @@
           width="240">
           <template slot-scope="scope">
             <el-button
+            v-if="$_has('adaptation-right/sub-update')"
             size="mini"
             icon="el-icon-edit"
             @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
             <el-button
+            v-if="$_has('adaptation-right/sub-del')"
             size="mini"
             type="danger"
             icon="el-icon-delete"
@@ -136,6 +138,7 @@ export default {
       dialogFormVisible: false,
       listLoading: false,
       isLook: false,
+      postType: 'ADAPTATION_ADD',
       ruleFormTitle: '新增改编权类别',
       ruleForm: {
         pid: '',
@@ -197,12 +200,13 @@ export default {
       const that = this
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
-          this.$store.dispatch('ADAPTATION_EDIT', this.ruleForm)
+          this.$store.dispatch(this.postType, this.ruleForm)
             .then(() => {
               this.dialogFormVisible = false
               this.$message({
                 type: 'success',
                 message: '操作成功!',
+                duration: 1 * 1000,
                 onClose: function() {
                   // 更新获取所有类别
                   that.$store.dispatch('ADAPTATION_FETCH_LIST')
@@ -224,6 +228,7 @@ export default {
       if (!row) {
         this.isLook = false
         this.ruleFormTitle = '新增改编权类别'
+        this.postType = 'ADAPTATION_ADD'
         // 初始化类别数据
         this.ruleForm = {
           pid: '',
@@ -233,6 +238,7 @@ export default {
       } else {
         this.isLook = true
         this.ruleFormTitle = '编辑改编权类别'
+        this.postType = 'ADAPTATION_UPDATE'
         // 填充对应类别数据
         this.ruleForm = {
           pid: row.pid,
@@ -255,6 +261,7 @@ export default {
             this.$message({
               type: 'success',
               message: '删除成功!',
+              duration: 1 * 1000,
               onClose: function() {
                 // 更新获取所有类别
                 that.$store.dispatch('ADAPTATION_FETCH_LIST')

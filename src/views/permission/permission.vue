@@ -24,10 +24,10 @@
           <el-col :span="10">
             <el-form-item label-width="10px">
               <el-button type="primary" @click="handleFilter">查询</el-button>
-              <router-link :to="{name:'create-permission'}">
+              <router-link v-if="$_has('ipr-permission/form-add')" :to="{name:'create-permission'}">
                 <el-button type="info">新增权限</el-button>
               </router-link>
-              <el-button type="info" @click="dialogFormVisible = true">新增员工</el-button>
+              <el-button v-if="$_has('user/add')" type="info" @click="dialogFormVisible = true">新增员工</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -104,10 +104,13 @@
           align="center"
           width="300">
           <template slot-scope="scope">
-            <router-link
-              :to="{name:'look-permission', params: {id: scope.row.id}}">
-              {{ scope.row.name }}
-            </router-link>
+            <span class="hover-show">
+              <router-link
+                :to="{name:'look-permission', params: {id: scope.row.id}}"
+                class="hover-link">
+                {{ scope.row.name }}
+              </router-link>
+            </span>
           </template>
         </el-table-column>
         <el-table-column
@@ -139,10 +142,12 @@
           width="240">
           <template slot-scope="scope">
             <router-link
+              v-if="$_has('ipr-permission/form-update')"
               :to="{name:'edit-permission', params: {id: scope.row.id}}">
               <el-button size="mini" icon="el-icon-edit">编辑</el-button>
             </router-link>
             <el-button
+            v-if="$_has('ipr-permission/del')"
             size="mini"
             type="danger"
             icon="el-icon-delete"
@@ -231,6 +236,7 @@ export default {
               this.$message({
                 type: 'success',
                 message: '操作成功!',
+                duration: 1 * 1000,
                 onClose: function() {
                   that.$store.dispatch('PERMISSION_FETCH_LIST')
                     .then(() => {

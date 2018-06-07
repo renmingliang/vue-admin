@@ -92,7 +92,7 @@
           <el-col :span="8">
             <el-form-item label-width="10px">
               <el-button type="primary" @click="handleFilter">查询</el-button>
-              <el-button @click="handleExport">导出</el-button>
+              <el-button @click="handleExport('ip/export-lists')">导出</el-button>
               <a ref="exportExcel" style="display:none;" :href="exportUrl" target="_blank">导出链接</a>
             </el-form-item>
           </el-col>
@@ -110,6 +110,7 @@
         :data="listData"
         @selection-change="handleSelectionChange">
         <el-table-column
+          fixed
           type="selection"
           align="center"
           width="40">
@@ -125,11 +126,14 @@
           align="center"
           min-width="120">
           <template slot-scope="scope">
-            <router-link
-              :to="{name:'look-ip', params: {id: scope.row.id}}"
-              target="_blank">
-              {{ scope.row.name }}
-            </router-link>
+            <span class="hover-show">
+              <router-link
+                :to="{name:'look-ip', params: {id: scope.row.id}}"
+                class="hover-link"
+                target="_blank">
+                {{ scope.row.name }}
+              </router-link>
+            </span>
           </template>
         </el-table-column>
         <el-table-column
@@ -139,9 +143,9 @@
           <template slot-scope="scope">{{ scope.row.company_name }}</template>
         </el-table-column>
         <el-table-column
-          label="买入金额"
+          label="买入金额（单位：元）"
           align="center"
-          width="160">
+          width="200">
           <template slot-scope="scope">{{scope.row.price | formatePrice}}</template>
         </el-table-column>
         <el-table-column
@@ -161,12 +165,12 @@
           align="center"
           width="120">
           <template slot-scope="scope">
-            <div>
+            <div v-if="$_has('ip/form-update')">
               <router-link :to="{name:'edit-ip', params: {id: scope.row.id}}">
                 <el-button size="mini" icon="el-icon-edit">编辑</el-button>
               </router-link>
             </div>
-            <div>
+            <div v-if="$_has('ip/del')">
               <el-button
               size="mini"
               type="danger"
@@ -184,17 +188,20 @@
               <li class="column-item hover-show"
                 v-for="(column, index) in scope.row.rights"
                 :key="index">
-                <router-link :to="{name:'look-project', params: {id: column.id}}" target="_blank">
-                  <el-button type="text" size="mini">{{ column.sub_right_name }}</el-button>
+                <router-link class="hover-link" :to="{name:'look-project', params: {id: column.id}}" target="_blank">
+                  <span>{{ column.sub_right_name }}</span>
                 </router-link>
                 <div v-if="column.p_count > 0" class="float-right inline">
-                  <router-link :to="{name:'edit-project', params: {id: column.id}}">
+                  <router-link
+                    v-if="$_has('project/form-update')"
+                    :to="{name:'edit-project', params: {id: column.id}}">
                     <el-button size="mini" type="primary">编辑</el-button>
                   </router-link>
-                  <!-- <el-button
+                  <el-button
+                    v-if="$_has('ip/right-del-project')"
                     size="mini"
                     type="danger"
-                    @click="handleDelete(scope.$index, scope.row, column.id)">删除</el-button> -->
+                    @click="handleDelete(scope.$index, scope.row, column.id)">删除</el-button>
                 </div>
               </li>
             </ul>
@@ -207,9 +214,14 @@
           <template slot-scope="scope">
             <ul class="column-container">
               <li class="column-item"
+                v-if="!column.time_remark"
                 v-for="(column, index) in scope.row.rights"
                 :key="index">
                 {{column.expired | formateDateStartEnd}}
+              </li>
+              <li class="column-item"
+                v-else>
+                {{column.time_remark}}
               </li>
             </ul>
           </template>
@@ -298,7 +310,6 @@ export default {
     ...mapGetters([
       'adaptationName',
       'companyName',
-      'addControl',
       'listLoading'
     ]),
     typeOptions() {
@@ -332,9 +343,11 @@ export default {
     },
     // 1.搜索
     handleFilter() {
-      if (this.listQuery.price_min > this.listQuery.price_max) {
-        this.$message.error('买入金额中，最小金额不应大于最大金额')
-        return false
+      if (this.listQuery.price_min && this.listQuery.price_max !== '') {
+        if (this.listQuery.price_min > this.listQuery.price_max) {
+          this.$message.error('买入金额中，最小金额不应大于最大金额')
+          return false
+        }
       }
       this.listQuery.page = 1
       this.getList()
@@ -350,44 +363,32 @@ export default {
       this.getList()
     },
     // 4.导出表格
-    handleExport() {
-      // 导出权限判断
-      const hasExport = this.addControl.some(item => {
-        return item.route === 'ip/export-lists'
+    handleExport(params) {
+      // 至少选择导出一项
+      /* if (this.multipleSelection.length) { */
+      const tempIds = this.multipleSelection.map(item => {
+        return item.id
       })
-      if (!hasExport) {
-        this.$message({
-          message: '您没有权限进行此操作！如有需要，请联系管理员',
-          type: 'warning'
-        })
-        return false
+      const ids = tempIds.join(',')
+      const query = qs.stringify(this.listQuery)
+      const token = getToken()
+      // 浏览器兼容处理
+      if (location.origin) {
+        this.exportUrl = location.origin + `/${params}?access-token=${token}&${query}&ids=${ids}`
+      } else {
+        // IE
+        this.exportUrl = `/${params}?access-token=${token}&${query}&ids=${ids}`
       }
 
-      // 至少选择导出一项
-      if (this.multipleSelection.length) {
-        const tempIds = this.multipleSelection.map(item => {
-          return item.id
-        })
-        const ids = tempIds.join(',')
-        const query = qs.stringify(this.listQuery)
-        const token = getToken()
-        // 浏览器兼容处理
-        if (location.origin) {
-          this.exportUrl = location.origin + `/ip/export-lists?access-token=${token}&${query}&ids=${ids}`
-        } else {
-          // IE
-          this.exportUrl = `/ip/export-lists?access-token=${token}&${query}&ids=${ids}`
-        }
-
-        setTimeout(() => {
-          this.$refs.exportExcel.click()
-        }, 200)
-      } else {
+      setTimeout(() => {
+        this.$refs.exportExcel.click()
+      }, 200)
+      /* } else {
         this.$message({
           message: '请至少选择一项',
           type: 'warning'
         })
-      }
+      } */
     },
     // 5.处理选择
     handleSelectionChange(val) {

@@ -4,7 +4,7 @@ import router from './router'
 import store from './store'
 
 import ElementUI from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css'
+import '@/assets/styles/element-variables.scss'
 
 import '@/assets/styles/reset.scss' // reset css
 import '@/assets/styles/index.scss' // global css
@@ -13,6 +13,12 @@ import '@/assets/icons' // icon
 
 // import './mock' // mock request
 import './permission'// user-roles permission
+
+// 页面按钮权限控制
+Vue.prototype.$_has = function (value) {
+  const permission = store.getters.addControl
+  return permission.some(item => item.route === value)
+}
 
 Vue.use(ElementUI)
 

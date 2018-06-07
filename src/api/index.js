@@ -7,21 +7,19 @@ export default {
   },
   // 登出
   logout: () => {
-    return request.post('/site/logout')
-  },
-  // 用户信息
-  getInfo: () => {
-    return request.post('/user/info')
+    return request.post('/user/logout')
   },
   // 修改密码
   editPass: (data) => {
     return request.post('/user/change-pwd', data)
   },
+  // 用户信息
+  getInfo: () => {
+    return request.get('/user/info')
+  },
   // 权限菜单
   getMenu: () => {
-    return request.post('/user/permission')
-    // 所有菜单
-    // return request.post('/menu/all')
+    return request.get('/user/permission')
   },
   // 添加用户权限
   UserAdd: (data) => {
@@ -40,8 +38,19 @@ export default {
     return request.get('/sso/all-users')
   },
   // IP录入
-  IPEdit: (data) => {
-    return request.post('/ip/form-save', data, {
+  IPAdd: (data) => {
+    return request.post('/ip/form-add', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      transformRequest: [function (data) {
+        return data
+      }]
+    })
+  },
+  // IP编辑
+  IPUpdate: (data) => {
+    return request.post('/ip/form-update', data, {
       headers: {
         'Content-Type': 'multipart/form-data'
       },
@@ -58,7 +67,7 @@ export default {
   IPProjectDelete: (data) => {
     return request.post('/ip/right-del-project', data)
   },
-  // 对应IP改编权类别删除
+  // 对应IP改编权类别单项目删除
   IPRightDelete: (data) => {
     return request.post('/ip/right-del', data)
   },
@@ -83,16 +92,24 @@ export default {
     return request.post('/project/del', data)
   },
   // Project录入
-  ProjectEdit: (data) => {
-    return request.post('/project/form-save', data)
+  ProjectAdd: (data) => {
+    return request.post('/project/form-add', data)
+  },
+  // Project编辑
+  ProjectUpdate: (data) => {
+    return request.post('/project/form-update', data)
   },
   // Project详情
   ProjectDetail: (data) => {
     return request.get('/ip/right-projects', { params: data })
   },
-  // 新增与编辑改编权类别
-  AdaptationEdit: (data) => {
-    return request.post('/adaptation-right/sub-save', data)
+  // 新增改编权类别
+  AdaptationAdd: (data) => {
+    return request.post('/adaptation-right/sub-add', data)
+  },
+  // 编辑改编权类别
+  AdaptationUpdate: (data) => {
+    return request.post('/adaptation-right/sub-update', data)
   },
   // 删除子改编权类别
   AdaptationDelete: (data) => {
@@ -126,9 +143,13 @@ export default {
   PermissionDetailUser: (data) => {
     return request.get('/ipr-permission/detail-and-users', { params: data })
   },
-  // 权限添加与编辑
-  PermissionEdit: (data) => {
-    return request.post('/ipr-permission/save', data)
+  // 权限添加
+  PermissionAdd: (data) => {
+    return request.post('/ipr-permission/form-add', data)
+  },
+  // 权限编辑
+  PermissionUpdate: (data) => {
+    return request.post('/ipr-permission/form-update', data)
   },
   // 权限删除
   PermissionDelete: (data) => {

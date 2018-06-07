@@ -5,7 +5,7 @@
 <script>
 import IpForm from './components/IpForm'
 export default {
-  name: 'create-ip',
+  name: 'look-ip',
   data() {
     return {
       status: true,

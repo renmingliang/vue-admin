@@ -23,7 +23,7 @@
               </el-select>
             </el-form-item>
             <el-form-item label="买入金额" prop="price">
-              <el-input :disabled="isLook" v-model.number="ruleForm.price" clearable></el-input>
+              <el-input :disabled="isLook" v-model="ruleForm.price" clearable></el-input>
             </el-form-item>
             <el-form-item label="特殊条件" prop="special_conditions">
               <el-input
@@ -34,7 +34,9 @@
                 v-model="ruleForm.special_conditions">
               </el-input>
             </el-form-item>
-            <el-form-item label="备注信息" prop="remark">
+            <el-form-item
+              label="备注信息"
+              prop="remark">
               <el-input
                 type="textarea"
                 :disabled="isLook"
@@ -46,7 +48,10 @@
           </div>
         </el-collapse-item>
 
-        <el-collapse-item title="附件信息（仅支持：JPG/PNG/PDF/Word/PPT文件格式）" :name="2">
+        <el-collapse-item :name="2">
+          <template slot="title">
+            <div>附件信息<span class="title-tips">（仅支持：JPG/PNG/PDF/Word/PPT文件格式）</span></div>
+          </template>
           <div class="common-wrap">
             <el-upload
               ref="upload"
@@ -62,7 +67,7 @@
               :on-preview="handlePreview"
               :on-remove="handleRemove">
               <i class="el-icon-plus">
-                <span slot="tip" class="upload-tip">上传附件 (文件大小不得超过10M)</span>
+                <span slot="tip" class="upload-tip">上传附件 (文件大小不得超过20M)</span>
               </i>
             </el-upload>
             <el-dialog :visible.sync="dialogVisible">
@@ -107,7 +112,10 @@
               </el-radio-group>
             </el-form-item>
 
-            <el-form-item label="版权开始时间">
+            <el-form-item
+              label="版权开始时间"
+              :prop="'rights.' + index + '.right_begin'"
+              :rules="{ trigger: 'blur', validator: validateRightBegin }">
               <el-date-picker
                 :picker-options="{disabledDate: (time) => {return time.getTime() > Date.parse(column.right_end)}}"
                 :disabled="isLook"
@@ -117,7 +125,10 @@
                 v-model="column.right_begin"></el-date-picker>
             </el-form-item>
 
-            <el-form-item label="版权结束时间">
+            <el-form-item
+              label="版权结束时间"
+              :prop="'rights.' + index + '.right_end'"
+              :rules="{ trigger: 'blur', validator: validateRightEnd }">
               <el-date-picker
                 :picker-options="{disabledDate: (time) => {return time.getTime() < Date.parse(column.right_begin)}}"
                 :disabled="isLook"
@@ -128,13 +139,26 @@
             </el-form-item>
 
             <el-form-item
+              label="版权起止备注"
+              :prop="'rights.' + index + '.time_remark'"
+              :rules="{ trigger: 'blur', validator: validateTimeRemark }">
+              <el-input
+                type="textarea"
+                :disabled="isLook"
+                :autosize="{ minRows: 2 }"
+                placeholder="请输入版权起止备注信息，注意不得与上述版权起止时间同时录入"
+                v-model="column.time_remark">
+              </el-input>
+            </el-form-item>
+
+            <el-form-item
               label="版权合作区域"
               :prop="'rights.' + index + '.cooperation_area'"
               :rules="{ trigger: 'blur',validator: validate20}">
               <el-input :disabled="isLook" v-model="column.cooperation_area" clearable></el-input>
             </el-form-item>
 
-            <div v-if="!isLook" class="custom-btn" align="right">
+            <div v-if="!isLook || (isEdit && $_has('ip/right-del'))" class="custom-btn" align="right">
               <el-button @click.prevent="removeForm(column)" type="info">删除该条改编权类别</el-button>
             </div>
           </div>
@@ -172,6 +196,7 @@ const defaultForm = {
       can_authorized_transfer: '',
       right_begin: '',
       right_end: '',
+      time_remark: '',
       cooperation_area: ''
     }
   ]
@@ -199,6 +224,13 @@ export default {
         callback(new Error('请输入IP名称'))
       } else if (value.length > 20) {
         callback(new Error('输入内容不得超过20个字符'))
+      } else {
+        callback()
+      }
+    }
+    const validateNum = (rule, value, callback) => {
+      if (value && isNaN(value)) {
+        callback(new Error('请输入数字值'))
       } else {
         callback()
       }
@@ -231,6 +263,7 @@ export default {
       isImg: true,
       dialogFileUrl: '',
       dialogVisible: false,
+      postType: 'IP_ADD',
       ruleForm: Object.assign({}, defaultForm),
       rules: {
         name: [
@@ -238,6 +271,9 @@ export default {
         ],
         company: [
           { required: true, message: '请选择IP所属主体', trigger: 'change' }
+        ],
+        price: [
+          { trigger: 'blur', validator: validateNum }
         ],
         special_conditions: [
           { trigger: 'blur', validator: validate200 }
@@ -272,17 +308,68 @@ export default {
     }
   },
   created() {
+    console.log(this.$route.meta)
     if (this.isEdit || this.isLook) {
       this.fetchData()
+      this.postType = 'IP_UPDATE'
     } else {
-      // 利用深拷贝对象，重新清空赋值ruleForm表单，不然会记录v-model的值
+      // 利用深拷贝对象，重新清空赋值ruleForm表单，不然会指向同一个内存地址
       this.ruleForm = deepClone(defaultForm)
+      this.postType = 'IP_ADD'
+    }
+  },
+  mounted() {
+    // 控制上传框显示与否
+    if (this.isLook) {
+      document.querySelector('.el-upload--picture-card').style.display = 'none'
     }
   },
   destroyed() {
     document.title = '凯撒文化-IP资料库'
   },
   methods: {
+    // 校验版权备注信息
+    validateTimeRemark(rule, value, callback) {
+      // 获取当前校验的项目索引值
+      const curIndex = rule.field.match(/\d+/)[0]
+      const right_begin = this.ruleForm.rights[curIndex].right_begin
+      const right_end = this.ruleForm.rights[curIndex].right_end
+      if (value) {
+        if (right_begin || right_end) {
+          callback(new Error('版权起止备注信息, 与版权起止时间只能二选其一'))
+        } else if (validateInput(value, 100)) {
+          callback(new Error('输入内容不得超过100个字符'))
+        } else {
+          callback()
+        }
+      } else {
+        if (!right_begin && !right_end) {
+          callback(new Error('版权起止备注在没有选择版权起止时间前提下，该项必须录入'))
+        } else {
+          callback()
+        }
+      }
+    },
+    // 校验版权开始时间
+    validateRightBegin(rule, value, callback) {
+      const curIndex = rule.field.match(/\d+/)[0]
+      const right_end = this.ruleForm.rights[curIndex].right_end
+      if (right_end && !value) {
+        callback(new Error('请选择版权起始时间'))
+      } else {
+        callback()
+      }
+    },
+    // 校验版权结束时间
+    validateRightEnd(rule, value, callback) {
+      const curIndex = rule.field.match(/\d+/)[0]
+      const right_begin = this.ruleForm.rights[curIndex].right_begin
+      if (right_begin && !value) {
+        callback(new Error('请选择版权结束时间'))
+      } else {
+        callback()
+      }
+    },
     validate20(rule, value, callback) {
       if (validateInput(value, 20)) {
         callback(new Error('输入内容不得超过20个字符'))
@@ -316,56 +403,67 @@ export default {
     submitForm() {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
-          this.listLoading = true
-          // 注意这里提交表单方式是'Content-Type': 'multipart/form-data'
-          // 添加处理上传的文件数据
-          this.uploadFile.forEach((item, index) => {
-            // 只有未上传的文件才添加，已上传成功不添加
-            if (item.raw) {
-              this.uploadForm.append(`files[${index}]`, item.raw)
-            }
-          })
+          this.$confirm('确认是否提交?', '提示', {
+            closeOnClickModal: false,
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            this.listLoading = true
+            // 注意这里提交表单方式是'Content-Type': 'multipart/form-data'
+            // 添加处理上传的文件数据
+            this.uploadFile.forEach((item, index) => {
+              // 只有未上传的文件才添加，已上传成功不添加
+              if (item.raw) {
+                this.uploadForm.append(`files[${index}]`, item.raw)
+              }
+            })
 
-          // 处理输入表单数据
-          this.uploadForm.append('ip[id]', this.ruleForm.id)
-          this.uploadForm.append('ip[name]', this.ruleForm.name)
-          this.uploadForm.append('ip[company]', this.ruleForm.company)
-          this.uploadForm.append('ip[price]', this.ruleForm.price)
-          this.uploadForm.append('ip[special_conditions]', this.ruleForm.special_conditions)
-          this.uploadForm.append('ip[remark]', this.ruleForm.remark)
-          this.uploadForm.append('ip[attachment]', this.ruleForm.attachment)
+            // 处理输入表单数据
+            this.uploadForm.append('ip[id]', this.ruleForm.id)
+            this.uploadForm.append('ip[name]', this.ruleForm.name)
+            this.uploadForm.append('ip[company]', this.ruleForm.company)
+            this.uploadForm.append('ip[price]', this.ruleForm.price)
+            this.uploadForm.append('ip[special_conditions]', this.ruleForm.special_conditions)
+            this.uploadForm.append('ip[remark]', this.ruleForm.remark)
+            this.uploadForm.append('ip[attachment]', this.ruleForm.attachment)
 
-          this.ruleForm.rights.forEach((column, index) => {
-            this.uploadForm.append(`ip_right[${index}][id]`, column.id)
-            this.uploadForm.append(`ip_right[${index}][ip_id]`, column.ip_id)
-            this.uploadForm.append(`ip_right[${index}][sub_right_id]`, column.sub_right_id)
-            this.uploadForm.append(`ip_right[${index}][is_exclusive_license]`, column.is_exclusive_license)
-            this.uploadForm.append(`ip_right[${index}][can_authorized_transfer]`, column.can_authorized_transfer)
-            this.uploadForm.append(`ip_right[${index}][right_begin]`, column.right_begin)
-            this.uploadForm.append(`ip_right[${index}][right_end]`, column.right_end)
-            this.uploadForm.append(`ip_right[${index}][cooperation_area]`, column.cooperation_area)
-          })
+            this.ruleForm.rights.forEach((column, index) => {
+              this.uploadForm.append(`ip_right[${index}][id]`, column.id)
+              this.uploadForm.append(`ip_right[${index}][ip_id]`, column.ip_id)
+              this.uploadForm.append(`ip_right[${index}][sub_right_id]`, column.sub_right_id)
+              this.uploadForm.append(`ip_right[${index}][is_exclusive_license]`, column.is_exclusive_license)
+              this.uploadForm.append(`ip_right[${index}][can_authorized_transfer]`, column.can_authorized_transfer)
+              this.uploadForm.append(`ip_right[${index}][right_begin]`, column.right_begin)
+              this.uploadForm.append(`ip_right[${index}][right_end]`, column.right_end)
+              this.uploadForm.append(`ip_right[${index}][time_remark]`, column.time_remark)
+              this.uploadForm.append(`ip_right[${index}][cooperation_area]`, column.cooperation_area)
+            })
 
-          this.$store.dispatch('IP_EDIT', this.uploadForm)
-            .then(res => {
-              this.listLoading = false
-              // 提交文件上传 -- 为了获取element的upload默认行为
-              this.$refs.upload.submit()
-
-              this.$confirm('文件已成功提交, 是否查看详情?', '提示', {
-                closeOnClickModal: false,
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'success'
-              }).then(() => {
-                this.$router.push({name: 'look-ip', params: {id: String(res.data)}})
-              }).catch(() => {
-                this.$router.push({ name: 'search' })
+            // 根据postType来处理录入还是编辑
+            this.$store.dispatch(this.postType, this.uploadForm)
+              .then(res => {
+                this.listLoading = false
+                // 提交文件上传 -- 为了获取element的upload默认行为
+                // this.$refs.upload.submit()
+                this.$message({
+                  type: 'success',
+                  message: '操作成功',
+                  duration: 1 * 1000,
+                  onClose: () => {
+                    this.$router.push({name: 'look-ip', params: {id: String(res.data)}})
+                  }
+                })
               })
+              .catch(() => {
+                this.listLoading = false
+              })
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消提交'
             })
-            .catch(() => {
-              this.listLoading = false
-            })
+          })
         } else {
           return false
         }
@@ -420,6 +518,7 @@ export default {
         can_authorized_transfer: '',
         right_begin: '',
         right_end: '',
+        time_remark: '',
         cooperation_area: ''
       })
       // 展开增加子项的折叠面板
@@ -451,7 +550,7 @@ export default {
     handleChange(file, fileList) {
       // console.log(file, fileList)
       // 限定上传文件大小与类型
-      const isLt10M = file.size / 1024 / 1024 < 10
+      const isBigFile = file.size / 1024 / 1024 < 20
       const typeIndex = file.name.lastIndexOf('.')
       const typeName = file.name.substr(typeIndex)
       const isTypeOk = this.acceptFileType.indexOf(typeName) !== -1
@@ -460,8 +559,8 @@ export default {
         fileList = fileList.splice(fileList.length - 1, 1)
         return false
       }
-      if (!isLt10M) {
-        this.$message.error('上传文件大小不能超过 10MB!')
+      if (!isBigFile) {
+        this.$message.error('上传文件大小不能超过 20MB!')
         fileList = fileList.splice(fileList.length - 1, 1)
         return false
       }
@@ -552,6 +651,9 @@ export default {
 
 <style rel="stylesheet/scss" lang="scss" scoped>
 .box-container{
+  .title-tips{
+    font-size: 14px;
+  }
   .upload-tip{
     position: absolute;
     left: 0;

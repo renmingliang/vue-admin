@@ -119,7 +119,7 @@ export default {
       return this.avatar ? this.avatar : require('../../../assets/images/icon-ip-user.png')
     },
     username() {
-      return this.name ? this.name : 'kaiser'
+      return this.name ? this.name : 'kaiser-user'
     }
   },
   created() {

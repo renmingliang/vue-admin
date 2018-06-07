@@ -20,8 +20,17 @@ const service = axios.create({
 
 // request拦截器
 service.interceptors.request.use(config => {
+  // 用户token信息
   if (store.getters.token) {
     config.headers['access-token'] = getToken()
+  }
+  // 防止get请求获取数据304缓存，必须保证状态为200
+  if (config.method === 'get') {
+    if (config.params) {
+      config.params['_'] = +new Date()
+    } else {
+      config.params = { '_': +new Date() }
+    }
   }
   return config
 }, error => {
@@ -35,25 +44,25 @@ service.interceptors.response.use(
   response => {
     const res = response.data
     if (res.code !== 10000) {
-      Message({
-        message: res.msg,
-        type: 'error',
-        duration: 5 * 1000
-      })
-
-      // 10005:没有操作权限; 10008:非法的token; 10012:其他客户端登录了;  10014:Token 过期了;
-      /* if (res.code === 10014) {
+      // 10005:没有操作权限; 10007:其他客户端登录了;  10014:Token 过期了;
+      if (res.code === 10007) {
         Message({
-          message: '登录信息已过期，请重新登录',
+          message: '您的账号已在其他客户端登录，如需要，请重新登录',
           type: 'warning',
-          duration: 5 * 1000,
+          duration: 3 * 1000,
           onClose: function() {
             store.dispatch('FedLogOut').then(() => {
               location.reload()// 为了重新实例化vue-router对象 避免bug
             })
           }
         })
-      } */
+      } else {
+        Message({
+          message: res.msg,
+          type: 'error',
+          duration: 3 * 1000
+        })
+      }
       return Promise.reject(res)
     } else {
       return response.data

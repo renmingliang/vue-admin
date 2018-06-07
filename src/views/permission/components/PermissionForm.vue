@@ -88,9 +88,10 @@
               <el-checkbox-group
                 :disabled="isLook"
                 v-model="ruleForm.permission">
-                  <template v-for="item in configData.permission">
+                <ul>
+                  <li class="custom-group" v-for="item in configData.permission" :key="item.id">
                     <el-card
-                      class="custom-group"
+                      class="group-item"
                       v-for="child in item.children"
                       :key="child.id"
                       shadow="never">
@@ -103,7 +104,8 @@
                           <el-checkbox :label="permission.id">{{permission.desc}} - {{permission.id}}</el-checkbox>
                         </div>
                     </el-card>
-                  </template>
+                  </li>
+                </ul>
               </el-checkbox-group>
             </el-form-item>
           </div>
@@ -148,10 +150,12 @@
                 width="240">
                 <template slot-scope="scope">
                   <el-button
+                  v-if="$_has('user/update-permission')"
                   size="mini"
                   icon="el-icon-edit"
                   @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
                   <el-button
+                  v-if="$_has('user/del')"
                   size="mini"
                   type="danger"
                   icon="el-icon-delete"
@@ -208,6 +212,7 @@
 </template>
 
 <script>
+import { deepClone } from '@/utils'
 import { mapGetters } from 'vuex'
 
 const defaultForm = {
@@ -252,6 +257,7 @@ export default {
       dialogFormVisible: false,
       activeNames: [1, 2, 3],
       ruleForm: Object.assign({}, defaultForm),
+      postType: 'PERMISSION_ADD',
       rules: {
         name: [
           { required: true, message: '请输入权限名称', trigger: 'blur' }
@@ -261,6 +267,7 @@ export default {
   },
   computed: {
     ...mapGetters([
+      'name',
       'configData',
       'configOptions',
       'permissionLoading',
@@ -270,8 +277,11 @@ export default {
   created() {
     if (this.isEdit || this.isLook) {
       this.fetchData()
+      this.postType = 'PERMISSION_UPDATE'
     } else {
-      this.ruleForm = Object.assign({}, defaultForm)
+      // 利用深拷贝对象，重新清空赋值ruleForm表单，不然会指向同一个内存地址
+      this.ruleForm = deepClone(defaultForm)
+      this.postType = 'PERMISSION_ADD'
     }
   },
   mounted() {
@@ -309,12 +319,10 @@ export default {
             })
           })
           this.ruleForm.menu = tempMenu
-          const params = this.ruleForm
 
-          console.log(params)
-          this.$store.dispatch('PERMISSION_EDIT', params)
+          this.$store.dispatch(this.postType, this.ruleForm)
             .then(res => {
-              this.$confirm('文件已成功提交, 是否查看详情?', '提示', {
+              this.$confirm('已成功提交, 是否查看详情?', '提示', {
                 closeOnClickModal: false,
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
@@ -344,8 +352,15 @@ export default {
               this.$message({
                 type: 'success',
                 message: '操作成功!',
+                duration: 1 * 1000,
                 onClose: function() {
-                  that.fetchData()
+                  if (that.username === that.name) {
+                    that.$store.dispatch('FedLogOut').then(() => {
+                      location.reload()// 为了重新实例化vue-router对象 避免bug
+                    })
+                  } else {
+                    that.fetchData()
+                  }
                 }
               })
             })
@@ -395,9 +410,12 @@ export default {
 
 <style rel="stylesheet/scss" lang="scss">
 .custom-group{
-  float: left;
-  margin-right: 20px;
+  overflow: hidden;
   margin-bottom: 20px;
+  .group-item{
+    float: left;
+    margin-right: 20px;
+  }
   .el-card__header{
     padding: 5px 20px;
   }

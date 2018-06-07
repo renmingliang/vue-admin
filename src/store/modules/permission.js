@@ -80,10 +80,27 @@ const permission = {
 
   actions: {
     // 录入
-    PERMISSION_EDIT({ commit }, params) {
+    PERMISSION_ADD({ commit }, params) {
       return new Promise((resolve, reject) => {
         commit('PERMISSION_LOADING', { loading: true })
-        api.PermissionEdit(params)
+        api.PermissionAdd(params)
+          .then(res => {
+            console.log(res)
+            commit('PERMISSION_LOADING', { loading: false })
+            resolve(res)
+          })
+          .catch(error => {
+            console.log(error)
+            commit('PERMISSION_LOADING', { loading: false })
+            reject(error)
+          })
+      })
+    },
+    // 编辑
+    PERMISSION_UPDATE({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        commit('PERMISSION_LOADING', { loading: true })
+        api.PermissionUpdate(params)
           .then(res => {
             console.log(res)
             commit('PERMISSION_LOADING', { loading: false })

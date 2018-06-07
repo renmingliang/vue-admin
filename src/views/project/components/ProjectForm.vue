@@ -11,7 +11,7 @@
           <div class="common-wrap">
             <el-form-item label="IP名称" prop="ip_name">
               <el-autocomplete
-                placeholder="请输入内容"
+                placeholder="支持模糊搜索"
                 v-model="ruleForm.ip_name"
                 :disabled="(isLook || isEdit) && ruleForm.ip_name !== ''"
                 :fetch-suggestions="querySearch"
@@ -19,7 +19,9 @@
                 @select="handleSuggestions"
               ></el-autocomplete>
             </el-form-item>
-            <el-form-item label="改编权类别" prop="ip_right.sub_right_id">
+            <el-form-item label="改编权类别"
+              prop="ip_right.sub_right_id"
+              :rules="{ required: true, message: '请选择改编权类别', trigger: 'change' }">
               <el-select
                 :disabled="(isLook || isEdit) && ruleForm.ip_right.sub_right_id !== ''"
                 v-model="ruleForm.ip_right.sub_right_id"
@@ -70,12 +72,18 @@
               <el-input :disabled="isLook" v-model="column.cooperation_type" clearable></el-input>
             </el-form-item>
 
-            <el-form-item label="合作金额">
-              <el-input :disabled="isLook" v-model.number="column.cooperation_money" clearable></el-input>
+            <el-form-item
+              label="合作金额"
+              :prop="'projects.' + index + '.cooperation_money'"
+              :rules="{ trigger: 'blur', validator: validateNum }">
+              <el-input :disabled="isLook" v-model="column.cooperation_money" clearable></el-input>
             </el-form-item>
 
-            <el-form-item label="分摊成本">
-              <el-input :disabled="isLook" v-model.number="column.apportionment_costs" clearable></el-input>
+            <el-form-item
+              label="分摊成本"
+              :prop="'projects.' + index + '.apportionment_costs'"
+              :rules="{ trigger: 'blur', validator: validateNum }">
+              <el-input :disabled="isLook" v-model="column.apportionment_costs" clearable></el-input>
             </el-form-item>
 
             <el-form-item label="项目负责人">
@@ -99,7 +107,7 @@
               </el-radio-group>
             </el-form-item>
 
-            <div v-if="!isLook" class="custom-btn" align="right">
+            <div v-if="!isLook || (!isEdit && $_has('project/del'))" class="custom-btn" align="right">
               <el-button @click.prevent="removeForm(column)" type="info">删除该项目</el-button>
             </div>
           </div>
@@ -163,13 +171,11 @@ export default {
     return {
       activeNames: [1, 2],
       ipTypeOptions: null,
+      postType: 'PROJECT_ADD',
       ruleForm: Object.assign({}, defaultForm),
       rules: {
         ip_name: [
           { required: true, message: '请输入IP名称', trigger: 'blur' }
-        ],
-        sub_right_id: [
-          { required: true, message: '请选择改编权类别', trigger: 'change' }
         ]
       },
       statusOptions: [
@@ -195,12 +201,21 @@ export default {
   created() {
     if (this.isEdit || this.isLook) {
       this.fetchData()
+      this.postType = 'PROJECT_UPDATE'
     } else {
-      // 利用深拷贝对象，重新清空赋值ruleForm表单，不然会记录v-model的值
+      // 利用深拷贝对象，重新清空赋值ruleForm表单，不然会指向同一个内存地址
       this.ruleForm = deepClone(defaultForm)
+      this.postType = 'PROJECT_ADD'
     }
   },
   methods: {
+    validateNum(rule, value, callback) {
+      if (value && isNaN(value)) {
+        callback(new Error('请输入数字值'))
+      } else {
+        callback()
+      }
+    },
     validateProjectName(rule, value, callback) {
       if (!value) {
         callback(new Error('请输入项目名称'))
@@ -239,42 +254,51 @@ export default {
     submitForm() {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
-          const tempIpRightId = this.id !== '0' ? this.id : this.ruleForm.ip_right.id
+          this.$confirm('确认是否提交?', '提示', {
+            closeOnClickModal: false,
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            const tempIpRightId = this.id !== '0' ? this.id : this.ruleForm.ip_right.id
 
-          let tempSub = {}
-          this.ruleForm.projects.forEach((column, index) => {
-            tempSub[`project[${index}][ip_right_id]`] = tempIpRightId
-            tempSub[`project[${index}][id]`] = column.id
-            tempSub[`project[${index}][name]`] = column.name
-            tempSub[`project[${index}][type]`] = column.type
-            tempSub[`project[${index}][cooperation_company]`] = column.cooperation_company
-            tempSub[`project[${index}][cooperation_type]`] = column.cooperation_type
-            tempSub[`project[${index}][cooperation_money]`] = column.cooperation_money
-            tempSub[`project[${index}][apportionment_costs]`] = column.apportionment_costs
-            tempSub[`project[${index}][project_principal]`] = column.project_principal
-            tempSub[`project[${index}][project_plan]`] = column.project_plan
-            tempSub[`project[${index}][project_progress]`] = column.project_progress
-            tempSub[`project[${index}][project_status]`] = column.project_status
-          })
+            let tempSub = {}
+            this.ruleForm.projects.forEach((column, index) => {
+              tempSub[`project[${index}][ip_right_id]`] = tempIpRightId
+              tempSub[`project[${index}][id]`] = column.id
+              tempSub[`project[${index}][name]`] = column.name
+              tempSub[`project[${index}][type]`] = column.type
+              tempSub[`project[${index}][cooperation_company]`] = column.cooperation_company
+              tempSub[`project[${index}][cooperation_type]`] = column.cooperation_type
+              tempSub[`project[${index}][cooperation_money]`] = column.cooperation_money
+              tempSub[`project[${index}][apportionment_costs]`] = column.apportionment_costs
+              tempSub[`project[${index}][project_principal]`] = column.project_principal
+              tempSub[`project[${index}][project_plan]`] = column.project_plan
+              tempSub[`project[${index}][project_progress]`] = column.project_progress
+              tempSub[`project[${index}][project_status]`] = column.project_status
+            })
 
-          const params = Object.assign({}, tempSub)
-
-          this.$store.dispatch('PROJECT_EDIT', params)
-            .then(res => {
-              this.$confirm('文件已成功提交, 是否查看详情?', '提示', {
-                closeOnClickModal: false,
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'success'
-              }).then(() => {
-                this.$router.push({name: 'look-project', params: {id: this.ruleForm.ip_right.id}})
-              }).catch(() => {
-                this.$router.push({ name: 'search' })
+            const params = Object.assign({}, tempSub)
+            this.$store.dispatch(this.postType, params)
+              .then(res => {
+                this.$message({
+                  type: 'success',
+                  message: '录入成功',
+                  duration: 1 * 1000,
+                  onClose: () => {
+                    this.$router.push({name: 'look-project', params: {id: this.ruleForm.ip_right.id}})
+                  }
+                })
               })
+              .catch(err => {
+                console.log(err.msg)
+              })
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消提交'
             })
-            .catch(err => {
-              console.log(err.msg)
-            })
+          })
         } else {
           return false
         }
@@ -353,7 +377,7 @@ export default {
         .then(res => {
           const result = res.data.map(item => {
             return {
-              label: item.sub_right_name,
+              label: item.name,
               value: item.sub_right_id,
               ip_right_id: item.id
             }

@@ -42,10 +42,24 @@ const adaptation = {
   },
 
   actions: {
-    // 新增与编辑
-    ADAPTATION_EDIT({ commit }, params) {
+    // 新增
+    ADAPTATION_ADD({ commit }, params) {
       return new Promise((resolve, reject) => {
-        api.AdaptationEdit(params)
+        api.AdaptationAdd(params)
+          .then(res => {
+            console.log(res)
+            resolve(res)
+          })
+          .catch(error => {
+            console.log(error)
+            reject(error)
+          })
+      })
+    },
+    // 编辑
+    ADAPTATION_UPDATE({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        api.AdaptationUpdate(params)
           .then(res => {
             console.log(res)
             resolve(res)

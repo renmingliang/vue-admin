@@ -5,59 +5,51 @@ const userMap = {
     roles: [
       {
         code: 'manage',
-        type: 'menu',
-        title: '问卷管理',
+        name: 'IP管理',
         children: [
           {
-            code: 'question-create',
-            type: 'menu',
-            title: '创建问卷',
-            permission: [
-              {
-                code: 'edit-question',
-                type: 'button',
-                title: '编辑'
-              },
-              {
-                code: 'delete-question',
-                type: 'button',
-                title: '删除'
-              }
-            ]
+            code: 'search',
+            name: '信息查询'
           },
           {
-            code: 'question-list',
-            type: 'menu',
-            title: '问卷列表'
-          }
-        ]
-      },
-      {
-        code: 'award',
-        type: 'menu',
-        title: '奖励发放',
-        children: [
+            code: 'create-ip',
+            name: 'IP信息录入'
+          },
           {
-            code: 'award-record',
-            type: 'menu',
-            title: '发放记录'
+            code: 'edit-ip',
+            name: '编辑IP信息'
+          },
+          {
+            code: 'create-project',
+            name: '项目信息录入'
+          },
+          {
+            code: 'edit-project',
+            name: '编辑项目信息'
           }
         ]
       },
       {
         code: 'setting',
-        type: 'menu',
-        title: '系统设置',
+        name: '系统设置',
         children: [
           {
-            code: 'project',
-            type: 'menu',
-            title: '项目设置'
+            code: 'adaptation',
+            name: '改编权设置'
           },
           {
             code: 'permission',
-            type: 'menu',
-            title: '权限设置'
+            name: '权限设置'
+          }
+        ]
+      },
+      {
+        code: 'action',
+        name: '操作日志',
+        children: [
+          {
+            code: 'log',
+            name: '操作日志'
           }
         ]
       }
@@ -71,42 +63,37 @@ const userMap = {
     roles: [
       {
         code: 'manage',
-        type: 'menu',
-        title: '问卷管理',
+        name: 'IP管理',
         children: [
           {
-            code: 'question-create',
-            type: 'menu',
-            title: '创建问卷',
-            permission: [
-              {
-                code: 'edit-question',
-                type: 'button',
-                title: '编辑'
-              },
-              {
-                code: 'delete-question',
-                type: 'button',
-                title: '删除'
-              }
-            ]
+            code: 'search',
+            name: '信息查询'
           },
           {
-            code: 'question-list',
-            type: 'menu',
-            title: '问卷列表'
+            code: 'create-ip',
+            name: 'IP信息录入'
+          },
+          {
+            code: 'edit-ip',
+            name: '编辑IP信息'
+          },
+          {
+            code: 'create-project',
+            name: '项目信息录入'
+          },
+          {
+            code: 'edit-project',
+            name: '编辑项目信息'
           }
         ]
       },
       {
-        code: 'award',
-        type: 'menu',
-        title: '奖励发放',
+        code: 'setting',
+        name: '系统设置',
         children: [
           {
-            code: 'award-record',
-            type: 'menu',
-            title: '发放记录'
+            code: 'adaptation',
+            name: '改编权设置'
           }
         ]
       }

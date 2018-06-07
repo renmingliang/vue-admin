@@ -16,11 +16,28 @@ const project = {
   },
 
   actions: {
-    // 录入与编辑
-    PROJECT_EDIT({ commit }, params) {
+    // 录入
+    PROJECT_ADD({ commit }, params) {
       return new Promise((resolve, reject) => {
         commit('LIST_LOADING', { loading: true })
-        api.ProjectEdit(params)
+        api.ProjectAdd(params)
+          .then(res => {
+            console.log(res)
+            commit('LIST_LOADING', { loading: false })
+            resolve(res)
+          })
+          .catch(error => {
+            commit('LIST_LOADING', { loading: false })
+            console.log(error)
+            reject(error)
+          })
+      })
+    },
+    // 编辑
+    PROJECT_UPDATE({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        commit('LIST_LOADING', { loading: true })
+        api.ProjectUpdate(params)
           .then(res => {
             console.log(res)
             commit('LIST_LOADING', { loading: false })

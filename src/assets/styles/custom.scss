@@ -87,12 +87,20 @@ html, #app{
       }
     }
     .hover-show{
+      .hover-link{
+        padding: 8px 0;
+        display: inline-block;
+      }
       .inline{
         display: none;
+        margin-top: 5px;
       }
       &:hover{
         .inline{
           display: block;
+        }
+        .hover-link{
+          text-decoration: underline;
         }
       }
     }

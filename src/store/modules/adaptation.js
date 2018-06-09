@@ -47,7 +47,7 @@ const adaptation = {
       return new Promise((resolve, reject) => {
         api.AdaptationAdd(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             resolve(res)
           })
           .catch(error => {
@@ -61,7 +61,7 @@ const adaptation = {
       return new Promise((resolve, reject) => {
         api.AdaptationUpdate(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             resolve(res)
           })
           .catch(error => {
@@ -75,7 +75,7 @@ const adaptation = {
       return new Promise((resolve, reject) => {
         api.AdaptationDelete(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             resolve(res)
           })
           .catch(error => {
@@ -89,7 +89,7 @@ const adaptation = {
       return new Promise((resolve, reject) => {
         api.AdaptationList(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             // 若未传参，初始获取所有类别
             if (!params) {
               commit('ADAPTATION_NAME', { list: res.data })
@@ -107,7 +107,7 @@ const adaptation = {
       return new Promise((resolve, reject) => {
         api.AdaptationTop()
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('ADAPTATION_TOP', { list: res.data })
             resolve(res)
           })

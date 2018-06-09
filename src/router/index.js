@@ -52,7 +52,7 @@ export const asyncRouterMap = [
     component: Layout,
     redirect: 'noredirect',
     alwaysShow: true,
-    meta: { title: 'IP管理', icon: 'table', code: 'manage' },
+    meta: { title: 'IP管理', icon: 'table' }, // code: 'manage' },
     children: [
       {
         path: 'search',
@@ -60,7 +60,7 @@ export const asyncRouterMap = [
         component: _import('search/search'),
         meta: {
           title: '信息查询',
-          code: 'search',
+          // code: 'search',
           permission: [
             { title: '删除ip', route: 'ip/del' },
             { title: '删除该ip下项目', route: 'ip/right-del-project' }

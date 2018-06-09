@@ -140,7 +140,7 @@ export default {
           const parmas = {
             pwd: that.ruleForm.new_password
           }
-          console.log(parmas)
+          // console.log(parmas)
 
           this.$store.dispatch('EditPass', parmas)
             .then(() => {

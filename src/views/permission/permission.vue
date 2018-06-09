@@ -79,7 +79,7 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button @click="cancelSubmit">取 消</el-button>
         <el-button type="primary" @click="submitForm">确 定</el-button>
       </div>
     </el-dialog>
@@ -218,7 +218,7 @@ export default {
     fetchSsoUser() {
       this.$store.dispatch('USER_FETCH_SSO')
     },
-    // 搜索
+    // 搜索搜索
     handleFilter() {
       const filterQuery = this.filterQuery
       this.$store.commit('PERMISSION_FILTER', {filterQuery})
@@ -231,6 +231,7 @@ export default {
           this.listLoading = true
           this.$store.dispatch('PERMISSION_USER_ADD', this.ruleForm)
             .then(res => {
+              this.resetForm()
               this.listLoading = false
               this.dialogFormVisible = false
               this.$message({
@@ -254,9 +255,18 @@ export default {
         }
       })
     },
+    // 取消新增员工
+    cancelSubmit() {
+      this.dialogFormVisible = false
+      this.resetForm()
+    },
+    // 重置表单
+    resetForm() {
+      this.$refs.ruleForm.resetFields()
+    },
     // 删除权限
     handleDelete(index, row) {
-      console.log(index, row)
+      // console.log(index, row)
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -289,9 +299,14 @@ export default {
         cb(results)
       }, 200)
     },
+    // 返回搜索到用户 -- 支持英文名与中文
     createStateFilter(queryString) {
       return (item) => {
-        return (item.value.toLowerCase().indexOf(queryString.toLowerCase()) !== -1)
+        if (item.nickname) {
+          return (item.nickname.toLowerCase().indexOf(queryString.toLowerCase()) !== -1) || (item.value.toLowerCase().indexOf(queryString.toLowerCase()) !== -1)
+        } else {
+          return (item.value.toLowerCase().indexOf(queryString.toLowerCase()) !== -1)
+        }
       }
     },
     handleSuggestions(item) {

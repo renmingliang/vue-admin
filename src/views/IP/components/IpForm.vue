@@ -308,7 +308,6 @@ export default {
     }
   },
   created() {
-    console.log(this.$route.meta)
     if (this.isEdit || this.isLook) {
       this.fetchData()
       this.postType = 'IP_UPDATE'
@@ -543,7 +542,7 @@ export default {
     },
     // 6.阻止默认上传至action地址
     beforeUploadFiles(file) {
-      console.log(file)
+      // console.log(file)
       return false
     },
     // 7.添加文件对象至formData

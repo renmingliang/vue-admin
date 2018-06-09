@@ -30,7 +30,7 @@ const ip = {
         commit('LIST_LOADING', { loading: true })
         api.IPAdd(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LIST_LOADING', { loading: false })
             resolve(res)
           })
@@ -47,7 +47,7 @@ const ip = {
         commit('LIST_LOADING', { loading: true })
         api.IPUpdate(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LIST_LOADING', { loading: false })
             resolve(res)
           })
@@ -64,7 +64,7 @@ const ip = {
         commit('LIST_LOADING', { loading: true })
         api.IPDelete(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LIST_LOADING', { loading: false })
             resolve(res)
           })
@@ -81,7 +81,7 @@ const ip = {
         commit('LIST_LOADING', { loading: true })
         api.IPProjectDelete(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LIST_LOADING', { loading: false })
             resolve(res)
           })
@@ -98,7 +98,7 @@ const ip = {
         commit('LIST_LOADING', { loading: true })
         api.IPRightDelete(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LIST_LOADING', { loading: false })
             resolve(res)
           })
@@ -114,7 +114,7 @@ const ip = {
       return new Promise((resolve, reject) => {
         api.IPRightAll(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             resolve(res)
           })
           .catch(error => {
@@ -128,7 +128,7 @@ const ip = {
         commit('LIST_LOADING', { loading: true })
         api.IPDetail(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LIST_LOADING', { loading: false })
             resolve(res)
           })
@@ -143,7 +143,7 @@ const ip = {
       return new Promise((resolve, reject) => {
         api.IPSearchByName(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             resolve(res)
           })
           .catch(error => {
@@ -158,7 +158,7 @@ const ip = {
         commit('LIST_LOADING', { loading: true })
         api.IPList(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LIST_LOADING', { loading: false })
             commit('IP_LIST', { list: res.data })
             resolve(res)
@@ -174,7 +174,7 @@ const ip = {
       return new Promise((resolve, reject) => {
         api.Export(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             resolve(res)
           })
           .catch(error => {

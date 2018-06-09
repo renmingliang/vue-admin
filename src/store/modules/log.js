@@ -24,7 +24,7 @@ const log = {
       return new Promise((resolve, reject) => {
         api.LogList(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LOG_LIST', { list: res.data })
             resolve(res)
           })

@@ -40,7 +40,7 @@ const common = {
       return new Promise((resolve, reject) => {
         api.UserSso()
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('USER_SSO_LIST', { list: res.data })
             resolve(res)
           })
@@ -54,7 +54,7 @@ const common = {
       return new Promise((resolve, reject) => {
         api.Export(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             resolve(res)
           })
           .catch(error => {
@@ -67,7 +67,7 @@ const common = {
       return new Promise((resolve, reject) => {
         api.CompanyList()
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('COMPANY_LIST', { list: res.data })
             resolve(res)
           })

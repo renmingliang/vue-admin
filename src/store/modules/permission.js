@@ -85,7 +85,7 @@ const permission = {
         commit('PERMISSION_LOADING', { loading: true })
         api.PermissionAdd(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('PERMISSION_LOADING', { loading: false })
             resolve(res)
           })
@@ -102,7 +102,7 @@ const permission = {
         commit('PERMISSION_LOADING', { loading: true })
         api.PermissionUpdate(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('PERMISSION_LOADING', { loading: false })
             resolve(res)
           })
@@ -118,7 +118,7 @@ const permission = {
       return new Promise((resolve, reject) => {
         api.PermissionDelete(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             resolve(res)
           })
           .catch(error => {
@@ -132,7 +132,7 @@ const permission = {
       return new Promise((resolve, reject) => {
         api.PermissionDetailUser(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             resolve(res)
           })
           .catch(error => {
@@ -145,7 +145,7 @@ const permission = {
       return new Promise((resolve, reject) => {
         api.PermissionList()
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('PERMISSION_LIST', { list: res.data })
             resolve(res)
           })
@@ -159,7 +159,7 @@ const permission = {
       return new Promise((resolve, reject) => {
         api.PermissionConfig()
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('SET_CONFIG', { list: res.data })
             resolve(res)
           })
@@ -173,7 +173,7 @@ const permission = {
       return new Promise((resolve, reject) => {
         api.UserAdd(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             resolve(res)
           })
           .catch(error => {
@@ -188,7 +188,7 @@ const permission = {
         commit('PERMISSION_LOADING', { loading: true })
         api.UserUpdate(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('PERMISSION_LOADING', { loading: false })
             resolve(res)
           })
@@ -205,7 +205,7 @@ const permission = {
         commit('PERMISSION_LOADING', { loading: true })
         api.UserDelete(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('PERMISSION_LOADING', { loading: false })
             resolve(res)
           })

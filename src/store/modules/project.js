@@ -22,7 +22,7 @@ const project = {
         commit('LIST_LOADING', { loading: true })
         api.ProjectAdd(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LIST_LOADING', { loading: false })
             resolve(res)
           })
@@ -39,7 +39,7 @@ const project = {
         commit('LIST_LOADING', { loading: true })
         api.ProjectUpdate(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LIST_LOADING', { loading: false })
             resolve(res)
           })
@@ -56,7 +56,7 @@ const project = {
         commit('LIST_LOADING', { loading: true })
         api.ProjectDelete(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LIST_LOADING', { loading: false })
             resolve(res)
           })
@@ -73,7 +73,7 @@ const project = {
         commit('LIST_LOADING', { loading: true })
         api.ProjectDetail(params)
           .then(res => {
-            console.log(res)
+            // console.log(res)
             commit('LIST_LOADING', { loading: false })
             resolve(res)
           })

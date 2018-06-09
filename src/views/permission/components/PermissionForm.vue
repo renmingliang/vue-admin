@@ -96,12 +96,12 @@
                       :key="child.id"
                       shadow="never">
                         <div slot="header">
-                          <span style="font-size: 14px;">{{child.name}}-{{child.id}}-{{child.pid}}</span>
+                          <span style="font-size: 14px;">{{child.name}}</span>
                         </div>
                         <div
                           v-for="permission in child.permissions"
                           :key="permission.id">
-                          <el-checkbox :label="permission.id">{{permission.desc}} - {{permission.id}}</el-checkbox>
+                          <el-checkbox :label="permission.id">{{permission.desc}}</el-checkbox>
                         </div>
                     </el-card>
                   </li>
@@ -292,7 +292,6 @@ export default {
     fetchData() {
       this.$store.dispatch('PERMISSION_FETCH_DETAIL', {id: this.id})
         .then(res => {
-          console.log(res)
           this.ruleForm = res.data.permission
           this.users = res.data.users
         })

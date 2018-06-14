@@ -5,7 +5,7 @@
         <el-row :gutter="30">
           <el-col :span="8">
             <el-form-item label="IP ID：">
-              <el-input v-model="listQuery.id" placeholder="IP ID" clearable></el-input>
+              <el-input v-model.trim="listQuery.id" placeholder="IP ID" clearable></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -38,7 +38,7 @@
             <el-form-item label="IP名称：">
               <el-autocomplete
                 placeholder="支持模糊搜索"
-                v-model="listQuery.name"
+                v-model.trim="listQuery.name"
                 :fetch-suggestions="querySearch"
                 :trigger-on-focus="false"
               ></el-autocomplete>
@@ -46,7 +46,7 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="备注信息：">
-              <el-input v-model="listQuery.remark" placeholder="备注信息" clearable></el-input>
+              <el-input v-model.trim="listQuery.remark" placeholder="备注信息" clearable></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -152,13 +152,13 @@
           label="特殊条件"
           align="center"
           width="180">
-          <template slot-scope="scope">{{ scope.row.special_conditions }}</template>
+          <template slot-scope="scope"><span class="height-overflow text-ellipsis" :title="scope.row.special_conditions" v-html="formateBr(scope.row.special_conditions)"></span></template>
         </el-table-column>
         <el-table-column
-          prop="remark"
           label="备注"
           align="center"
           width="180">
+          <template slot-scope="scope"><span class="height-overflow text-ellipsis" :title="scope.row.remark" v-html="formateBr(scope.row.remark)"></span></template>
         </el-table-column>
         <el-table-column
           label="操作"
@@ -208,20 +208,21 @@
           </template>
         </el-table-column>
         <el-table-column
-          label="版权期限"
+          label="版权截止期限"
           align="center"
-          width="100">
+          width="120">
           <template slot-scope="scope">
-            <ul class="column-container">
+            <ul class="column-container set-height">
               <li class="column-item"
                 v-if="!column.time_remark"
                 v-for="(column, index) in scope.row.rights"
                 :key="index">
-                {{column.expired | formateDateStartEnd}}
+                {{column.expired}}
               </li>
               <li class="column-item"
+                :title="column.time_remark"
                 v-else>
-                {{column.time_remark}}
+                <div class="text-ellipsis">{{column.time_remark}}</div>
               </li>
             </ul>
           </template>
@@ -231,7 +232,7 @@
           align="center"
           width="100">
           <template slot-scope="scope">
-            <ul class="column-container">
+            <ul class="column-container set-height">
               <li class="column-item"
                 v-for="(column, index) in scope.row.rights"
                 :key="index">
@@ -442,6 +443,11 @@ export default {
           // 调用callback返回建议列表的数据
           cb(result)
         })
+    },
+    // 9.
+    formateBr(val) {
+      const temp = val.replace(/\n/ig, '<br/>')
+      return temp
     }
   },
   filters: {
@@ -452,15 +458,24 @@ export default {
       } else {
         return ''
       }
-    },
-    // 9.不足一月按一月
-    formateDateStartEnd(val) {
-      return (val || 0) + '个月'
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-
+// 截取高度隐藏
+.height-overflow{
+  max-height: 69px;
+  overflow: hidden;
+  display: block;
+}
+// 设置固定高便于对齐
+.set-height{
+  .column-item{
+    height: 39px;
+    line-height: 34px;
+    box-sizing: content-box;
+  }
+}
 </style>

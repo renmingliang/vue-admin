@@ -381,7 +381,16 @@ export default {
       this.$store.dispatch('IP_FETCH_DETAIL', {id: this.id})
         .then(res => {
           document.title = res.data.name
-          this.ruleForm = res.data
+          const tempData = res.data
+          // 后台返回的空日期格式，需要处理
+          const dateNull = '0000-00-00'
+          tempData.rights.map(s => {
+            s.right_begin = s.right_begin === dateNull ? '' : s.right_begin
+            s.right_end = s.right_end === dateNull ? '' : s.right_end
+            return s
+          })
+          // 处理完毕赋值
+          this.ruleForm = tempData
           this.listFile = res.data.attachment.map(item => {
             const tempIndex = item.lastIndexOf('/') + 1
             const typeIndex = item.lastIndexOf('.')

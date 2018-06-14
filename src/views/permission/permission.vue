@@ -15,7 +15,7 @@
               <el-autocomplete
                 placeholder="支持模糊搜索"
                 popper-class="custom-autocomplete"
-                v-model="filterQuery.username"
+                v-model.trim="filterQuery.username"
                 :trigger-on-focus="false"
                 :fetch-suggestions="querySearchUser">
               </el-autocomplete>

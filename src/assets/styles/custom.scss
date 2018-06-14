@@ -2,6 +2,11 @@
 html, #app{
   height: 100%;
 }
+.text-ellipsis{
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .inline{
   display: inline-block;
 }

@@ -5,7 +5,7 @@
         <el-row :gutter="30">
           <el-col :span="7">
             <el-form-item label="操作人账号">
-              <el-input v-model="listQuery.uid" clearable></el-input>
+              <el-input v-model.trim="listQuery.uid" clearable></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="7">

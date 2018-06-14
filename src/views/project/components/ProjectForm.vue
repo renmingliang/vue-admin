@@ -73,16 +73,16 @@
             </el-form-item>
 
             <el-form-item
-              label="合作金额"
-              :prop="'projects.' + index + '.cooperation_money'"
-              :rules="{ trigger: 'blur', validator: validateNum }">
+              label="合作金额">
+              <!-- :prop="'projects.' + index + '.cooperation_money'"
+              :rules="{ trigger: 'blur', validator: validateNum }"> -->
               <el-input :disabled="isLook" v-model="column.cooperation_money" clearable></el-input>
             </el-form-item>
 
             <el-form-item
-              label="分摊成本"
-              :prop="'projects.' + index + '.apportionment_costs'"
-              :rules="{ trigger: 'blur', validator: validateNum }">
+              label="分摊成本">
+              <!-- :prop="'projects.' + index + '.apportionment_costs'"
+              :rules="{ trigger: 'blur', validator: validateNum }"> -->
               <el-input :disabled="isLook" v-model="column.apportionment_costs" clearable></el-input>
             </el-form-item>
 
@@ -95,7 +95,7 @@
             </el-form-item>
 
             <el-form-item label="项目进度">
-              <el-input :disabled="isLook" v-model="column.project_progress" clearable></el-input>
+              <el-input :disabled="isLook" v-model="column.project_progress" type="textarea" :autosize="{ minRows: 2 }" ></el-input>
             </el-form-item>
 
             <el-form-item
